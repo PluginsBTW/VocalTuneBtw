@@ -31,8 +31,10 @@ void LookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int width, 
     const auto bounds = juce::Rectangle<float> (static_cast<float> (x), static_cast<float> (y),
                                                 static_cast<float> (width), static_cast<float> (height));
     const auto centre = bounds.getCentre();
-    const float arcRadius = juce::jmin (bounds.getWidth(), bounds.getHeight()) * 0.5f - 8.0f;
-    const float thickness = juce::jmax (4.0f, arcRadius * 0.09f);
+    const float side = juce::jmin (bounds.getWidth(), bounds.getHeight());
+    const float thickness = juce::jmax (4.0f, side * 0.04f);
+    // Leave room for the glow and the end dot's halo inside the slider bounds.
+    const float arcRadius = side * 0.5f - thickness * 1.8f - 1.0f;
     const float angle = startAngle + sliderPos * (endAngle - startAngle);
     auto stroke = [] (float w) { return juce::PathStrokeType (w, juce::PathStrokeType::curved, juce::PathStrokeType::rounded); };
 

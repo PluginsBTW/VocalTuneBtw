@@ -143,7 +143,8 @@ MainPanel::MainPanel (PitchPilotProcessor& p)
       speed (state, ParamID::speed,
              { "Retune Speed", "Slow", "Fast", [] (double v) { return juce::String (v, v < 10.0 ? 1 : 0) + " ms"; }, true }),
       humanize (state, ParamID::tolerance,
-                { "Humanize", "Off", "Max", [] (double v) { return v < 0.05 ? juce::String ("Off") : juce::String (v, 1) + " cents"; } }),
+                { "Humanize", "Off", "Max", [max = state.getParameterRange (ParamID::tolerance).end] (double v)
+                  { return v < 0.05 ? juce::String ("Off") : juce::String (100.0 * v / max, 0) + " %"; } }),
       keyboard (state),
       settings (p)
 {
