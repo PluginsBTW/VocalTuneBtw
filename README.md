@@ -107,9 +107,11 @@ tested on its own. The full design is in
 
 ## Download
 
-Prebuilt VST3 and Standalone binaries for x86-64 Linux (glibc 2.35 or newer)
-are on the [Releases page](https://github.com/PluginsBTW/VocalTuneBtw/releases).
-Extract the archive and copy `VocalTuneBtw.vst3` to `~/.vst3/`.
+Prebuilt VST3 and Standalone binaries for x86-64 Linux are on the
+[Releases page](https://github.com/PluginsBTW/VocalTuneBtw/releases).
+Extract the archive and copy `VocalTuneBtw.vst3` to `~/.vst3/`. Each
+release lists the glibc version it needs; on older systems, build from
+source.
 
 ## Building
 

@@ -1,11 +1,10 @@
 # Builds the Linux release on Ubuntu 22.04, so the binaries only need glibc
-# 2.35 and the libstdc++ of GCC 12. Pushing a tag vX.Y.Z publishes a GitHub
-# release; a manual run only uploads the package as a workflow artifact.
+# 2.35 and the libstdc++ of GCC 12. Manual only: run it on a tag vX.Y.Z to
+# publish a GitHub release for that tag (it fails if the release already
+# exists); run it on a branch to only upload the package as a workflow artifact.
 name: Release
 
 on:
-  push:
-    tags: ["v*"]
   workflow_dispatch:
 
 permissions:
