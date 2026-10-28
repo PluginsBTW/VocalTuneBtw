@@ -121,18 +121,18 @@ Extract the archive and copy `VocalTuneBtw.vst3` to `~/.vst3/`.
 - git (CMake downloads JUCE and the other dependencies at configure time)
 - Ninja (optional; used automatically when installed)
 - JUCE's Linux libraries: ALSA, FreeType, fontconfig and X11
-  (Xrandr, Xinerama, Xcursor, Xext, Xrender, Xcomposite)
+  (Xrandr, Xinerama, Xcursor, Xext, Xrender, Xcomposite, Xi)
 
 Arch Linux:
 
 ```bash
-sudo pacman -S --needed base-devel cmake ninja git alsa-lib freetype2 fontconfig libx11 libxrandr libxinerama libxcursor libxext libxrender libxcomposite
+sudo pacman -S --needed base-devel cmake ninja git alsa-lib freetype2 fontconfig libx11 libxrandr libxinerama libxcursor libxext libxrender libxcomposite libxi
 ```
 
 Debian / Ubuntu:
 
 ```bash
-sudo apt install build-essential cmake ninja-build git libasound2-dev libfreetype-dev libfontconfig1-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxext-dev libxrender-dev libxcomposite-dev
+sudo apt install build-essential cmake ninja-build git libasound2-dev libfreetype-dev libfontconfig1-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxext-dev libxrender-dev libxcomposite-dev libxi-dev
 ```
 
 ### Build
