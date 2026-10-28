@@ -10,7 +10,11 @@ Roadmap: `docs/milestones.md`.
 scripts/build-linux.sh            # configure + build everything (Release) into build/
 scripts/build-linux.sh --tests    # tests only, without fetching JUCE (fast)
 ctest --test-dir build --output-on-failure
+build-tests/tools/vtb-render in.wav -o out.wav --root A --scale "natural minor"   # offline render + metrics
 ```
+
+Vocal recordings go in `recordings/` (gitignored). Don't commit them without
+the user's OK; the repo is public.
 
 Artifacts land in `build/src/plugin/VocalTuneBtw_artefacts/Release/{VST3,CLAP,Standalone}`.
 The build never copies plugins into `~/.vst3` or `~/.clap`. Ask before installing.

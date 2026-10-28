@@ -15,10 +15,20 @@ endif()
 option(PITCHPILOT_BUILD_PLUGIN "Build the JUCE plugin (VST3, CLAP, Standalone)" ON)
 option(PITCHPILOT_BUILD_CLAP "Also build the CLAP format (VST3 does not need it)" ON)
 option(PITCHPILOT_BUILD_TESTS "Build the DSP unit tests" ON)
+option(PITCHPILOT_BUILD_TOOLS "Build the offline tools (vtb-render)" ON)
 
 include(FetchContent)
 
 add_subdirectory(src/dsp)
+
+# Offline metrics, shared by the tools and the tests. No JUCE.
+add_library(pitchpilot_eval INTERFACE)
+target_include_directories(pitchpilot_eval INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tools)
+target_link_libraries(pitchpilot_eval INTERFACE pitchpilot_dsp)
+
+if(PITCHPILOT_BUILD_TOOLS)
+    add_subdirectory(tools)
+endif()
 
 if(PITCHPILOT_BUILD_PLUGIN)
     FetchContent_Declare(JUCE

@@ -9,9 +9,10 @@ add_executable(pitchpilot_tests
     test_pitch_detection.cpp
     test_correction.cpp
     test_pitch_shifter.cpp
-    test_realtime.cpp)
+    test_realtime.cpp
+    test_engine_quality.cpp)
 
-target_link_libraries(pitchpilot_tests PRIVATE pitchpilot_dsp Catch2::Catch2WithMain)
+target_link_libraries(pitchpilot_tests PRIVATE pitchpilot_dsp pitchpilot_eval Catch2::Catch2WithMain)
 
 include(${catch2_SOURCE_DIR}/extras/Catch.cmake)
 catch_discover_tests(pitchpilot_tests)
