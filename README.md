@@ -53,7 +53,7 @@ and exposed to the host. Parameter details are in
 ## Latency
 
 The latency depends on the Voice Range setting (behind the gear icon): Low
-12.5 ms, Normal 8.6 ms, High 5.5 ms. The plugin reports the current value to
+10.9 ms, Normal 7.0 ms, High 3.9 ms. The plugin reports the current value to
 the host. Pick the highest range that still covers the singer's lowest note.
 
 ## License

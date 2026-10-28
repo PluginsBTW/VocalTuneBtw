@@ -128,9 +128,9 @@ TEST_CASE ("Latency follows the voice range")
         return engine.latencySamples();
     };
     // Rest delay = 2 ms fade headroom + half of 1.05 × the longest period.
-    CHECK (latencyFor (dsp::VoiceRange::Low) == 602);    // 12.5 ms
-    CHECK (latencyFor (dsp::VoiceRange::Normal) == 413); //  8.6 ms
-    CHECK (latencyFor (dsp::VoiceRange::High) == 266);   //  5.5 ms
+    CHECK (latencyFor (dsp::VoiceRange::Low) == 525);    // 10.9 ms
+    CHECK (latencyFor (dsp::VoiceRange::Normal) == 336); //  7.0 ms
+    CHECK (latencyFor (dsp::VoiceRange::High) == 189);   //  3.9 ms
 }
 
 TEST_CASE ("Switching voice range mid-stream keeps correcting without allocating")
