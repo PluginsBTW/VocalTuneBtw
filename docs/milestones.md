@@ -3,7 +3,7 @@
 Each milestone ends with a clean build and passing tests. Every claim is
 checked against something we can measure.
 
-## M1 — Skeleton and DSP prototype *(this commit)*
+## M1 — Skeleton and DSP prototype *(done; released as v0.1.1)*
 
 - Architecture, licensing and milestone documents.
 - CMake project that builds VST3 and Standalone (primary) and CLAP (optional).
@@ -43,4 +43,5 @@ checked against something we can measure.
 ## M5 — Optional features and packaging
 
 - MIDI note guidance (MIDI input sets the target notes).
-- Install script and tarball. Document limitations.
+- Install script and tarball. Document limitations. *(Tarball done:
+  `scripts/package-linux.sh`, GitHub releases. Install script not started.)*
