@@ -67,7 +67,7 @@ native CLAP one) without changes.
 
 | Stage | Latency | Reported to host |
 |---|---|---|
-| Pitch shifter | rest delay = crossfade headroom for shifts up to 3 semitones (about 0.4 ms) + half of 1.05 × the longest period in the voice range: Low 10.9 ms, Normal 7.0 ms, High 3.9 ms (525 / 336 / 189 samples at 48 kHz). Bigger upward shifts start their splice earlier instead of raising the latency. The tap wanders within that range while shifting. | yes (rest delay; updated from the message thread when the range changes) |
+| Pitch shifter | rest delay = 2 ms crossfade headroom + half of 1.05 × the longest period in the voice range: Low 12.5 ms, Normal 8.6 ms, High 5.5 ms (602 / 413 / 266 samples at 48 kHz). The tap wanders within that range while shifting. | yes (rest delay; updated from the message thread when the range changes) |
 | Pitch detection | about 2 periods of the lowest range note + one hop (Normal range: about 30 ms) | no: the correction arrives late, the audio is not delayed |
 
 Detection lag means that note onsets reach their target about one detection

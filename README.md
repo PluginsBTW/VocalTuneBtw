@@ -32,7 +32,7 @@ Standalone app.
   up to ±100 cents, and A4 tuning from 415 to 466 Hz.
 - **Live tuning meter.** Shows the target note, its octave and the deviation
   in cents. The keyboard highlights the note being corrected.
-- **Low latency.** 3.9–10.9 ms depending on the voice range. The plugin
+- **Low latency.** 5.5–12.5 ms depending on the voice range. The plugin
   reports it to the host for automatic delay compensation.
 - **Click-free bypass**, exposed to the host and automatable.
 - **Mono or stereo.** Stereo channels are shifted together, so the image
@@ -78,9 +78,9 @@ so a higher Voice Range means lower latency. Values at 48 kHz:
 
 | Voice Range | Lowest note | Latency |
 |---|---|---|
-| Low | 50 Hz | 10.9 ms |
-| Normal | 80 Hz | 7.0 ms |
-| High | 150 Hz | 3.9 ms |
+| Low | 50 Hz | 12.5 ms |
+| Normal | 80 Hz | 8.6 ms |
+| High | 150 Hz | 5.5 ms |
 
 Pick the highest range that still covers the singer's lowest note. The
 current value is shown on the settings page.

@@ -15,10 +15,6 @@ class PitchShifter
 public:
     static constexpr float minRatio = 0.5f;
     static constexpr float maxRatio = 2.0f;
-    // Shifts up to this ratio (3 semitones, more than scale correction usually
-    // needs) splice at the fixed minimum delay. Bigger upward shifts start
-    // their splice earlier instead, so they don't add latency for everyone.
-    static constexpr float restHeadroomRatio = 1.18921f;
 
     // Allocates for notes down to minLowestHz. Call off the audio thread.
     void prepare (double sampleRate, int numChannels, float minLowestHz = 50.0f, float fadeMs = 2.0f);

@@ -40,7 +40,7 @@ TEST_CASE ("Unity ratio is a pure delay of latencySamples()")
     dsp::PitchShifter shifter;
     shifter.prepare (sampleRate, 1);
     const int latency = shifter.latencySamples();
-    CHECK (latency == 525); // lowest note 50 Hz at 48 kHz: about 10.9 ms
+    CHECK (latency == 602); // lowest note 50 Hz at 48 kHz: about 12.5 ms
 
     auto signal = test::sine (330.0, sampleRate, 0.2);
     const auto original = signal;
@@ -56,8 +56,8 @@ TEST_CASE ("Unity ratio is a pure delay of latencySamples()")
 
 TEST_CASE ("Large upward shifts stay click-free")
 {
-    // The splice trigger moves up for big ratios so the fading tap never
-    // reads samples that haven't been written yet.
+    // During a splice the fading tap must never read samples that haven't
+    // been written yet.
     const double sampleRate = 48000.0;
     const double semitones = GENERATE (3.0, 7.0, 12.0);
     const double input = 220.0;

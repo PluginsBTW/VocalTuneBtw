@@ -12,10 +12,9 @@ void PitchShifter::prepare (double sampleRate, int numChannels, float minLowestH
     rate = sampleRate;
     lowestAllocatedHz = minLowestHz;
     fadeLength = std::max (16.0f, std::round (static_cast<float> (fadeMs * 0.001 * sampleRate)));
-    // During a fade the old tap keeps moving towards the write position by
-    // (ratio − 1) samples per sample, so it needs that much headroom below
-    // minDelay. process() raises the splice point for larger ratios.
-    minDelay = std::ceil (fadeLength * (restHeadroomRatio - 1.0f)) + 2.0f;
+    // During a fade the old tap keeps moving by up to one sample per sample
+    // (ratio 2), so it needs fadeLength of headroom below minDelay.
+    minDelay = fadeLength + 2.0f;
     setLowestFrequency (minLowestHz);
 
     const auto size = std::bit_ceil (static_cast<unsigned> (maxDelay + fadeLength) + 4u);
@@ -73,12 +72,10 @@ void PitchShifter::process (float* const* channels, int numChannels, int numSamp
 
     for (int i = 0; i < numSamples; ++i)
     {
-        const float ratio = std::clamp (ratios[i], minRatio, maxRatio);
-        const float spliceUpAt = std::max (minDelay, fadeLength * (ratio - 1.0f) + 2.0f);
-        if (fadeRemaining == 0 && (delay <= spliceUpAt || delay >= maxDelay))
+        if (fadeRemaining == 0 && (delay <= minDelay || delay >= maxDelay))
         {
             fadingDelay = delay;
-            delay += delay <= spliceUpAt ? jumpLength() : -jumpLength();
+            delay += delay <= minDelay ? jumpLength() : -jumpLength();
             fadeRemaining = static_cast<int> (fadeLength);
         }
 
@@ -94,12 +91,12 @@ void PitchShifter::process (float* const* channels, int numChannels, int numSamp
             channels[ch][i] = fading ? readTap (line, fadingDelay) * (1.0f - gain) + current * gain : current;
         }
 
+        const float ratio = std::clamp (ratios[i], minRatio, maxRatio);
         float step = 1.0f - ratio;
         if (std::abs (step) < 1.0e-4f && ! fading)
             step += std::clamp (centre - delay, -maxDrift, maxDrift);
         delay += step;
-        // If the ratio rises during a fade, never read ahead of the write position.
-        fadingDelay = std::max (fadingDelay + step, 1.0f);
+        fadingDelay += step;
         if (fading)
             --fadeRemaining;
         writePos = (writePos + 1) & mask;
