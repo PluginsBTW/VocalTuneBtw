@@ -92,6 +92,7 @@ TEST_CASE ("Bypass outputs the input delayed by the reported latency")
 
     dsp::PitchCorrector engine;
     engine.prepare (sampleRate, 128, 1);
+    engine.setParameters ({ .bypass = true });
     const auto latency = static_cast<size_t> (engine.latencySamples());
 
     float maxError = 0.0f;
@@ -115,4 +116,43 @@ TEST_CASE ("Engine reports telemetry for the detected note")
     CHECK (t.voiced);
     CHECK (t.targetNote == 57); // A3
     CHECK (std::abs (t.deviationCents - test::centsBetween (228.0, 220.0)) < 3.0);
+}
+
+TEST_CASE ("Latency follows the voice range")
+{
+    dsp::PitchCorrector engine;
+    engine.prepare (48000.0, 256, 1);
+    const auto latencyFor = [&] (dsp::VoiceRange range)
+    {
+        engine.setParameters ({ .range = range });
+        return engine.latencySamples();
+    };
+    // Rest delay = 2 ms fade headroom + half of 1.05 × the longest period.
+    CHECK (latencyFor (dsp::VoiceRange::Low) == 602);    // 12.5 ms
+    CHECK (latencyFor (dsp::VoiceRange::Normal) == 413); //  8.6 ms
+    CHECK (latencyFor (dsp::VoiceRange::High) == 266);   //  5.5 ms
+}
+
+TEST_CASE ("Switching voice range mid-stream keeps correcting without allocating")
+{
+    const double sampleRate = 48000.0;
+    auto signal = test::sine (228.0, sampleRate, 1.5);
+    dsp::PitchCorrector engine;
+    engine.prepare (sampleRate, 128, 1);
+
+    allocationCount = 0;
+    trackAllocations = true;
+    for (size_t pos = 0; pos + 128 <= signal.size(); pos += 128)
+    {
+        const auto range = pos < signal.size() / 3 ? dsp::VoiceRange::Low
+                           : pos < 2 * signal.size() / 3 ? dsp::VoiceRange::High : dsp::VoiceRange::Normal;
+        engine.setParameters ({ .speedMs = 5.0f, .range = range });
+        float* channels[] = { signal.data() + pos };
+        engine.process (channels, 1, 128);
+    }
+    trackAllocations = false;
+    CHECK (allocationCount == 0);
+
+    const std::vector<float> tail (signal.end() - static_cast<long> (sampleRate * 0.4), signal.end());
+    CHECK (std::abs (test::centsBetween (test::medianDetectedHz (tail, sampleRate, 0.05), 220.0)) < 8.0);
 }

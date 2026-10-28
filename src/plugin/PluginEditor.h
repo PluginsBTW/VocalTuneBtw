@@ -1,27 +1,28 @@
 #pragma once
 
 #include "PluginProcessor.h"
+#include "ui/LookAndFeel.h"
+#include "ui/MainPanel.h"
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
 namespace pitchpilot
 {
-// Placeholder UI until milestone M3: JUCE's generic parameter editor plus a
-// live readout of the detected and target notes.
+// Hosts the main panel at its design size and scales it to the window.
 class PitchPilotEditor final : public juce::AudioProcessorEditor, private juce::Timer
 {
 public:
     explicit PitchPilotEditor (PitchPilotProcessor& owner);
+    ~PitchPilotEditor() override;
 
     void resized() override;
 
 private:
     void timerCallback() override;
 
-    PitchPilotProcessor& pluginProcessor;
-    juce::Label readout;
-    juce::GenericAudioProcessorEditor parameterEditor;
+    ui::LookAndFeel lookAndFeel;
+    ui::MainPanel panel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PitchPilotEditor)
 };

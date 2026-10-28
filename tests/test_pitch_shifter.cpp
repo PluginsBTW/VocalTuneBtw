@@ -40,7 +40,7 @@ TEST_CASE ("Unity ratio is a pure delay of latencySamples()")
     dsp::PitchShifter shifter;
     shifter.prepare (sampleRate, 1);
     const int latency = shifter.latencySamples();
-    CHECK (latency == 722); // (194 + 1250) / 2 at 48 kHz: about 15 ms
+    CHECK (latency == 602); // lowest note 50 Hz at 48 kHz: about 12.5 ms
 
     auto signal = test::sine (330.0, sampleRate, 0.2);
     const auto original = signal;

@@ -20,7 +20,12 @@ endif()
 target_sources(PitchPilot PRIVATE
     Parameters.cpp
     PluginProcessor.cpp
-    PluginEditor.cpp)
+    PluginEditor.cpp
+    ../ui/LookAndFeel.cpp
+    ../ui/Knob.cpp
+    ../ui/TuningMeter.cpp
+    ../ui/NoteKeyboard.cpp
+    ../ui/MainPanel.cpp)
 
 target_compile_definitions(PitchPilot PUBLIC
     JUCE_WEB_BROWSER=0

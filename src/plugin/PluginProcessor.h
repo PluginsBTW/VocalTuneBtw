@@ -16,7 +16,7 @@ struct Telemetry
     std::atomic<float> appliedShiftCents { 0.0f };
 };
 
-class PitchPilotProcessor final : public juce::AudioProcessor
+class PitchPilotProcessor final : public juce::AudioProcessor, private juce::AsyncUpdater
 {
 public:
     PitchPilotProcessor();
@@ -51,10 +51,15 @@ public:
     const Telemetry& telemetry() const noexcept { return liveTelemetry; }
 
 private:
+    // Latency changes with the voice range. The host is told from the message
+    // thread, never from processBlock.
+    void handleAsyncUpdate() override;
+
     juce::AudioProcessorValueTreeState parameters;
     ParameterReader reader;
     dsp::PitchCorrector engine;
     Telemetry liveTelemetry;
+    std::atomic<int> engineLatency { 0 };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PitchPilotProcessor)
 };

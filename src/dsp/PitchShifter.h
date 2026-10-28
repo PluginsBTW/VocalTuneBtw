@@ -16,9 +16,14 @@ public:
     static constexpr float minRatio = 0.5f;
     static constexpr float maxRatio = 2.0f;
 
-    // Allocates. Call off the audio thread.
-    void prepare (double sampleRate, int numChannels, float rangeMs = 22.0f, float fadeMs = 4.0f);
+    // Allocates for notes down to minLowestHz. Call off the audio thread.
+    void prepare (double sampleRate, int numChannels, float minLowestHz = 50.0f, float fadeMs = 2.0f);
     void reset() noexcept;
+
+    // Size the delay range to one period of the lowest expected note (plus a
+    // margin). Lower notes need more delay, so this sets the latency.
+    // Real-time safe. If the rest delay moves, the tap splices over to it.
+    void setLowestFrequency (float hz) noexcept;
 
     // Period of the input signal in samples (0 when unknown). Real-time safe.
     void setPeriodHint (float periodSamples) noexcept { period = periodSamples; }
@@ -35,6 +40,8 @@ private:
 
     std::vector<std::vector<float>> delayLines;
     int mask = 0, writePos = 0;
+    double rate = 48000.0;
+    float lowestAllocatedHz = 50.0f;
     float minDelay = 0.0f, maxDelay = 0.0f, centre = 0.0f;
     float fadeLength = 1.0f;
     float period = 0.0f;

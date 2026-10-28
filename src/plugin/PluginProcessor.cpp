@@ -18,7 +18,13 @@ void PitchPilotProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     engine.prepare (sampleRate, samplesPerBlock, getTotalNumInputChannels());
     engine.setParameters (reader.read());
     engine.reset();
+    engineLatency.store (engine.latencySamples());
     setLatencySamples (engine.latencySamples());
+}
+
+void PitchPilotProcessor::handleAsyncUpdate()
+{
+    setLatencySamples (engineLatency.load());
 }
 
 bool PitchPilotProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -38,6 +44,11 @@ void PitchPilotProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
         buffer.clear (ch, 0, buffer.getNumSamples());
 
     engine.setParameters (reader.read());
+    if (const int latency = engine.latencySamples(); latency != engineLatency.load (std::memory_order_relaxed))
+    {
+        engineLatency.store (latency, std::memory_order_relaxed);
+        triggerAsyncUpdate();
+    }
     engine.process (buffer.getArrayOfWritePointers(), channels, buffer.getNumSamples());
 
     const auto& t = engine.telemetry();

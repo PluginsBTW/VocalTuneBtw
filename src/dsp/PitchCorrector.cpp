@@ -38,7 +38,9 @@ void PitchCorrector::prepare (double newSampleRate, int maxBlockSize, int numCha
     ratios.assign (static_cast<size_t> (maxBlock), 1.0f);
     chunkPointers.assign (static_cast<size_t> (preparedChannels), nullptr);
 
-    // A whole chunk is written before it is read back `latency` samples late.
+    // The shifter was just prepared for the lowest range, so this is the
+    // largest latency any range can have. A whole chunk is written before it
+    // is read back `latency` samples late.
     const auto drySize = std::bit_ceil (static_cast<unsigned> (latencySamples() + maxBlock) + 1u);
     dryMask = static_cast<int> (drySize) - 1;
     dryLines.assign (static_cast<size_t> (preparedChannels), std::vector<float> (drySize, 0.0f));
@@ -71,6 +73,7 @@ void PitchCorrector::setParameters (const EngineParameters& p) noexcept
     {
         const auto limits = voiceRangeLimits (p.range);
         detector.setRange (limits.minHz, limits.maxHz);
+        shifter.setLowestFrequency (limits.minHz);
         currentRange = p.range;
     }
 

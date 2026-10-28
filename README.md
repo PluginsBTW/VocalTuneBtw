@@ -6,7 +6,7 @@ CLAP and a Standalone app.
 > **Status: M1 prototype.** Detection, scale mapping, correction and shifting
 > work and are covered by tests. The shifter is a pitch-synchronous splice
 > design: good on steady tones, but it hasn't been evaluated on real vocals
-> yet. The UI is JUCE's generic parameter editor. See
+> yet. See
 > [docs/milestones.md](docs/milestones.md).
 
 ## Build
@@ -48,8 +48,9 @@ and exposed to the host. Parameter details are in
 
 ## Latency
 
-About 15 ms through the shifter (722 samples at 48 kHz). The plugin reports
-this to the host.
+The latency depends on the Voice Range setting (behind the gear icon): Low
+12.5 ms, Normal 8.6 ms, High 5.5 ms. The plugin reports the current value to
+the host. Pick the highest range that still covers the singer's lowest note.
 
 ## License
 

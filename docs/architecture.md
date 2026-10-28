@@ -13,7 +13,7 @@ It builds VST3, CLAP and a Standalone app from one codebase.
 │ Plugin layer      src/plugin   (JUCE)                         │
 │   PluginProcessor  parameters (APVTS), state, bus layouts,    │
 │                    latency reporting, telemetry atomics       │
-│   PluginEditor     UI (generic editor for now, custom in M3)  │
+│   PluginEditor     scales src/ui/MainPanel (custom UI)        │
 ├──────────────────────────────────────────────────────────────┤
 │ DSP engine        src/dsp      (plain C++20, no JUCE)         │
 │   PitchCorrector   facade: one prepare() + process() call     │
@@ -43,9 +43,9 @@ native CLAP one) without changes.
 4. `CorrectionController::nextShiftSemitones` smooths toward the goal with a
    one-pole filter. Its time constant is the **Correction speed** parameter.
 5. `PitchShifter` reads one tap from a delay line, moving at `(1 − ratio)`
-   samples per sample. When the tap leaves the 4–26 ms delay range, a second
-   tap starts a whole number of detected periods away, and a 4 ms raised-cosine
-   crossfade hands over to it. Period-aligned splices stay in phase, which avoids
+   samples per sample. When the tap leaves its delay range (one period of the
+   range's lowest note, plus a margin), a second tap starts a whole number of
+   detected periods away, and a 2 ms raised-cosine crossfade hands over to it. Period-aligned splices stay in phase, which avoids
    the cancellation and pitch error of a fixed two-tap design.
 6. The output crossfades between the shifted signal and a dry signal delayed by
    the shifter latency, over a 10 ms ramp, for click-free bypass.
@@ -67,7 +67,7 @@ native CLAP one) without changes.
 
 | Stage | Latency | Reported to host |
 |---|---|---|
-| Pitch shifter | rest delay ≈ 15 ms (722 samples at 48 kHz); wanders within 4–26 ms while shifting | yes (rest delay) |
+| Pitch shifter | rest delay = 2 ms crossfade headroom + half of 1.05 × the longest period in the voice range: Low 12.5 ms, Normal 8.6 ms, High 5.5 ms (602 / 413 / 266 samples at 48 kHz). The tap wanders within that range while shifting. | yes (rest delay; updated from the message thread when the range changes) |
 | Pitch detection | about 2 periods of the lowest range note + one hop (Normal range: about 30 ms) | no: the correction arrives late, the audio is not delayed |
 
 Detection lag means that note onsets reach their target about one detection

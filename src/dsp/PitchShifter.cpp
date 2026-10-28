@@ -7,19 +7,33 @@
 
 namespace pitchpilot::dsp
 {
-void PitchShifter::prepare (double sampleRate, int numChannels, float rangeMs, float fadeMs)
+void PitchShifter::prepare (double sampleRate, int numChannels, float minLowestHz, float fadeMs)
 {
+    rate = sampleRate;
+    lowestAllocatedHz = minLowestHz;
     fadeLength = std::max (16.0f, std::round (static_cast<float> (fadeMs * 0.001 * sampleRate)));
     // During a fade the old tap keeps moving by up to one sample per sample
     // (ratio 2), so it needs fadeLength of headroom below minDelay.
     minDelay = fadeLength + 2.0f;
-    maxDelay = minDelay + std::max (64.0f, static_cast<float> (rangeMs * 0.001 * sampleRate));
-    centre = std::round ((minDelay + maxDelay) * 0.5f);
+    setLowestFrequency (minLowestHz);
 
     const auto size = std::bit_ceil (static_cast<unsigned> (maxDelay + fadeLength) + 4u);
     mask = static_cast<int> (size) - 1;
     delayLines.assign (static_cast<size_t> (std::max (1, numChannels)), std::vector<float> (size, 0.0f));
     reset();
+}
+
+void PitchShifter::setLowestFrequency (float hz) noexcept
+{
+    const float longestPeriod = static_cast<float> (rate) / std::max (hz, lowestAllocatedHz);
+    maxDelay = minDelay + std::max (64.0f, std::ceil (longestPeriod * 1.05f));
+    const float newCentre = std::round ((minDelay + maxDelay) * 0.5f);
+    if (newCentre == centre)
+        return;
+    centre = newCentre;
+    fadingDelay = delay;
+    delay = centre;
+    fadeRemaining = static_cast<int> (fadeLength);
 }
 
 void PitchShifter::reset() noexcept
