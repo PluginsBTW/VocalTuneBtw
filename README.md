@@ -1,0 +1,56 @@
+# PitchPilot
+
+A native Linux pitch-correction plugin for monophonic vocals. It builds VST3,
+CLAP and a Standalone app.
+
+> **Status: M1 prototype.** Detection, scale mapping, correction and shifting
+> work and are covered by tests. The shifter is a pitch-synchronous splice
+> design: good on steady tones, but it hasn't been evaluated on real vocals
+> yet. The UI is JUCE's generic parameter editor. See
+> [docs/milestones.md](docs/milestones.md).
+
+## Build
+
+Requirements: CMake ≥ 3.25, a C++20 compiler, git, and the JUCE Linux
+dependencies (ALSA, X11/Xrandr/Xinerama/Xcursor, FreeType, fontconfig).
+Ninja is used if it is installed.
+
+```bash
+scripts/build-linux.sh           # Release build of all formats and the tests
+scripts/build-linux.sh --tests   # DSP tests only, no JUCE download
+```
+
+CLAP is optional. To build VST3 and Standalone only, configure with
+`-DPITCHPILOT_BUILD_CLAP=OFF`.
+
+Artifacts:
+
+```
+build/src/plugin/PitchPilot_artefacts/Release/VST3/PitchPilot.vst3
+build/src/plugin/PitchPilot_artefacts/Release/CLAP/PitchPilot.clap
+build/src/plugin/PitchPilot_artefacts/Release/Standalone/PitchPilot
+```
+
+To install for your user:
+
+```bash
+cp -r build/src/plugin/PitchPilot_artefacts/Release/VST3/PitchPilot.vst3 ~/.vst3/
+mkdir -p ~/.clap && cp build/src/plugin/PitchPilot_artefacts/Release/CLAP/PitchPilot.clap ~/.clap/
+```
+
+## Controls
+
+Root note, Scale (14 options including modes, pentatonics, blues and custom),
+per-note enable switches, Correction Speed (1–200 ms), Strength, Detune,
+Tolerance, Reference A4 and Voice Range (Low/Normal/High). Bypass is click-free
+and exposed to the host. Parameter details are in
+[docs/architecture.md](docs/architecture.md).
+
+## Latency
+
+About 15 ms through the shifter (722 samples at 48 kHz). The plugin reports
+this to the host.
+
+## License
+
+AGPL-3.0-or-later. See [docs/licensing.md](docs/licensing.md).
