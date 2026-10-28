@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Configure and build PitchPilot. Usage: scripts/build-linux.sh [--tests] [--debug]
+# Configure and build VocalTuneBtw. Usage: scripts/build-linux.sh [--tests] [--debug]
 #   --tests  build and run only the DSP tests (skips fetching JUCE)
 #   --debug  Debug instead of Release
 set -euo pipefail

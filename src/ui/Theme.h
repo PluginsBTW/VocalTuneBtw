@@ -6,23 +6,25 @@ namespace pitchpilot::ui
 {
 namespace colours
 {
-    inline const juce::Colour background { 0xff1c1e21 };
-    inline const juce::Colour header { 0xff222528 };
-    inline const juce::Colour panel { 0xff26292d };
-    inline const juce::Colour edge { 0xff383c41 };
-    inline const juce::Colour text { 0xffe6e9ec };
-    inline const juce::Colour textDim { 0xff8d949b };
-    inline const juce::Colour accent { 0xff3fb6e6 };
-    inline const juce::Colour accentDim { 0xff1d4e66 };
-    inline const juce::Colour warm { 0xffe8a33d };
-    inline const juce::Colour knobTop { 0xff3c4045 };
-    inline const juce::Colour knobBottom { 0xff1d2023 };
-    inline const juce::Colour meterFace { 0xff16181a };
-    inline const juce::Colour keyWhite { 0xffdfe3e7 };
-    inline const juce::Colour keyWhiteOff { 0xff80878e };
-    inline const juce::Colour keyBlack { 0xff2c3034 };
-    inline const juce::Colour keyBlackOff { 0xff141618 };
-    inline const juce::Colour keyActive { 0xff2f7fc1 };
+    // Dark navy with one blue accent.
+    inline const juce::Colour frame { 0xff0a0f18 };
+    inline const juce::Colour background { 0xff111927 };
+    inline const juce::Colour panel { 0xff172131 };
+    inline const juce::Colour edge { 0xff263347 };
+    inline const juce::Colour text { 0xffe6edf7 };
+    inline const juce::Colour textDim { 0xff8394ab };
+    inline const juce::Colour textOnAccent { 0xff0b1220 };
+    inline const juce::Colour accent { 0xff3d9df5 };
+    inline const juce::Colour accentDim { 0xff1d3f66 };
+    inline const juce::Colour track { 0xff223044 };
+    inline const juce::Colour knobTop { 0xff1d2838 };
+    inline const juce::Colour knobBottom { 0xff121a27 };
+    inline const juce::Colour meterFace { 0xff0b1220 };
+    inline const juce::Colour keyWhite { 0xffd9e2ee };
+    inline const juce::Colour keyWhiteOff { 0xff55637a };
+    inline const juce::Colour keyBlack { 0xff1f2a3a };
+    inline const juce::Colour keyBlackOff { 0xff0d141f };
+    inline const juce::Colour keyActive { 0xff3d9df5 };
 } // namespace colours
 
 inline juce::Font font (float height, bool bold = false)

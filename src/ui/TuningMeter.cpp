@@ -62,9 +62,9 @@ void TuningMeter::paint (juce::Graphics& g)
 
         auto colour = colours::edge;
         if (step == 0)
-            colour = active ? colours::accent : colours::edge.brighter (0.3f);
+            colour = active ? colours::text : colours::edge.brighter (0.3f);
         else if (lit)
-            colour = colours::warm;
+            colour = colours::accent;
 
         g.setColour (colour);
         g.drawLine (juce::Line<float> (centre.getPointOnCircumference (inner, angle),

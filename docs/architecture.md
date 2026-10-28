@@ -1,6 +1,6 @@
-# PitchPilot architecture
+# VocalTuneBtw architecture
 
-PitchPilot is a monophonic, real-time vocal pitch-correction plugin for Linux.
+VocalTuneBtw is a monophonic, real-time vocal pitch-correction plugin for Linux.
 It builds VST3, CLAP and a Standalone app from one codebase.
 
 ## Layers

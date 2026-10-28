@@ -101,9 +101,9 @@ void SettingsPanel::paint (juce::Graphics& g)
 {
     const auto bounds = getLocalBounds().toFloat().reduced (0.5f);
     g.setColour (colours::panel);
-    g.fillRoundedRectangle (bounds, 6.0f);
+    g.fillRoundedRectangle (bounds, 10.0f);
     g.setColour (colours::edge);
-    g.drawRoundedRectangle (bounds, 6.0f, 1.0f);
+    g.drawRoundedRectangle (bounds, 10.0f, 1.0f);
 
     const auto box = range.getBounds().toFloat();
     g.setColour (colours::background);
@@ -219,36 +219,37 @@ void MainPanel::refresh()
 void MainPanel::paint (juce::Graphics& g)
 {
     const auto bounds = getLocalBounds().toFloat();
-    g.fillAll (colours::background);
-
-    // Header.
-    auto header = bounds.withHeight (52.0f);
-    g.setColour (colours::header);
-    g.fillRect (header);
+    g.fillAll (colours::frame);
+    const auto card = bounds.reduced (4.0f);
+    g.setColour (colours::background);
+    g.fillRoundedRectangle (card, 10.0f);
     g.setColour (colours::edge);
-    g.drawHorizontalLine (52, 0.0f, bounds.getWidth());
+    g.drawRoundedRectangle (card, 10.0f, 1.0f);
 
-    // Logo: a small pitch curve settling onto a line.
+    // Logo: a pitch curve settling onto a line, inside a ring.
+    const juce::Point<float> logoCentre (34.0f, 27.0f);
+    g.setColour (colours::accent);
+    g.drawEllipse (juce::Rectangle<float> (26.0f, 26.0f).withCentre (logoCentre), 2.2f);
     juce::Path logo;
-    const float lx = 26.0f, ly = 26.0f;
-    logo.startNewSubPath (lx, ly + 8.0f);
-    logo.cubicTo (lx + 6.0f, ly - 14.0f, lx + 12.0f, ly + 14.0f, lx + 20.0f, ly - 2.0f);
-    logo.lineTo (lx + 30.0f, ly - 2.0f);
-    g.setColour (colours::accent);
-    g.strokePath (logo, juce::PathStrokeType (2.5f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    const float lx = logoCentre.x - 7.0f, ly = logoCentre.y;
+    logo.startNewSubPath (lx, ly + 4.0f);
+    logo.cubicTo (lx + 3.0f, ly - 8.0f, lx + 6.0f, ly + 8.0f, lx + 10.0f, ly - 1.0f);
+    logo.lineTo (lx + 14.0f, ly - 1.0f);
+    g.strokePath (logo, juce::PathStrokeType (2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
-    g.setFont (font (22.0f, true));
+    const auto logoFont = font (24.0f);
+    g.setFont (logoFont);
     g.setColour (colours::text);
-    g.drawText ("Pitch", juce::Rectangle<float> (66.0f, 0.0f, 60.0f, 52.0f), juce::Justification::centredLeft);
+    g.drawText ("Vocal", juce::Rectangle<float> (56.0f, 0.0f, 80.0f, 54.0f), juce::Justification::centredLeft);
     g.setColour (colours::accent);
-    g.drawText ("Pilot", juce::Rectangle<float> (66.0f + juce::GlyphArrangement::getStringWidth (font (22.0f, true), "Pitch"), 0.0f, 80.0f, 52.0f),
+    g.drawText ("TuneBtw", juce::Rectangle<float> (56.0f + juce::GlyphArrangement::getStringWidth (logoFont, "Vocal"), 0.0f, 120.0f, 54.0f),
                 juce::Justification::centredLeft);
 
     // Key / Scale pill.
     g.setColour (colours::panel);
-    g.fillRoundedRectangle (keyScalePill, 5.0f);
+    g.fillRoundedRectangle (keyScalePill, 6.0f);
     g.setColour (colours::edge);
-    g.drawRoundedRectangle (keyScalePill, 5.0f, 1.0f);
+    g.drawRoundedRectangle (keyScalePill, 6.0f, 1.0f);
     g.setColour (colours::text);
     g.setFont (font (15.0f));
     g.drawText ("Key", keyScalePill.withWidth (44.0f).translated (10.0f, 0.0f), juce::Justification::centredLeft);
@@ -264,7 +265,9 @@ void MainPanel::paint (juce::Graphics& g)
     // Keyboard frame.
     const auto frame = keyboard.getBounds().toFloat().expanded (6.0f);
     g.setColour (colours::meterFace);
-    g.fillRoundedRectangle (frame, 6.0f);
+    g.fillRoundedRectangle (frame, 8.0f);
+    g.setColour (colours::edge);
+    g.drawRoundedRectangle (frame, 8.0f, 1.0f);
 }
 
 void MainPanel::resized()

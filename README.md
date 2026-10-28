@@ -1,4 +1,4 @@
-# PitchPilot
+# VocalTuneBtw
 
 A native Linux pitch-correction plugin for monophonic vocals. It builds VST3,
 CLAP and a Standalone app.
@@ -26,17 +26,21 @@ CLAP is optional. To build VST3 and Standalone only, configure with
 Artifacts:
 
 ```
-build/src/plugin/PitchPilot_artefacts/Release/VST3/PitchPilot.vst3
-build/src/plugin/PitchPilot_artefacts/Release/CLAP/PitchPilot.clap
-build/src/plugin/PitchPilot_artefacts/Release/Standalone/PitchPilot
+build/src/plugin/VocalTuneBtw_artefacts/Release/VST3/VocalTuneBtw.vst3
+build/src/plugin/VocalTuneBtw_artefacts/Release/CLAP/VocalTuneBtw.clap
+build/src/plugin/VocalTuneBtw_artefacts/Release/Standalone/VocalTuneBtw
 ```
 
 To install for your user:
 
 ```bash
-cp -r build/src/plugin/PitchPilot_artefacts/Release/VST3/PitchPilot.vst3 ~/.vst3/
-mkdir -p ~/.clap && cp build/src/plugin/PitchPilot_artefacts/Release/CLAP/PitchPilot.clap ~/.clap/
+cp -r build/src/plugin/VocalTuneBtw_artefacts/Release/VST3/VocalTuneBtw.vst3 ~/.vst3/
+mkdir -p ~/.clap && cp build/src/plugin/VocalTuneBtw_artefacts/Release/CLAP/VocalTuneBtw.clap ~/.clap/
 ```
+
+The plugin used to be called PitchPilot. It keeps the same plugin ID, so old
+projects still load it. Delete `~/.vst3/PitchPilot.vst3` so the host doesn't
+see the plugin twice.
 
 ## Controls
 

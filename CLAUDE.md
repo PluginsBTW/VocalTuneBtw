@@ -1,4 +1,4 @@
-# PitchPilot — agent notes
+# VocalTuneBtw — agent notes
 
 Monophonic real-time pitch-correction plugin (VST3, CLAP, Standalone) for Linux.
 C++20 + JUCE. Licensed AGPL-3.0-or-later. Design: `docs/architecture.md`.
@@ -12,7 +12,7 @@ scripts/build-linux.sh --tests    # tests only, without fetching JUCE (fast)
 ctest --test-dir build --output-on-failure
 ```
 
-Artifacts land in `build/src/plugin/PitchPilot_artefacts/Release/{VST3,CLAP,Standalone}`.
+Artifacts land in `build/src/plugin/VocalTuneBtw_artefacts/Release/{VST3,CLAP,Standalone}`.
 The build never copies plugins into `~/.vst3` or `~/.clap`. Ask before installing.
 
 ## Rules

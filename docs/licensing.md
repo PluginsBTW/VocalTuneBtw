@@ -1,6 +1,6 @@
 # Licensing
 
-**Decision:** PitchPilot is open source under **AGPL-3.0-or-later**
+**Decision:** VocalTuneBtw is open source under **AGPL-3.0-or-later**
 (full text in `LICENSE.md`). This lets us use JUCE under its AGPLv3 option,
 with no commercial JUCE licence.
 
@@ -26,7 +26,7 @@ AGPL-3.0-or-later.
   the AGPL. A link to the public repository at the same revision meets this.
 - Keep the MIT notices for the VST3 SDK and CLAP libraries in the release
   archive.
-- AGPL §13 (network interaction) doesn't apply in practice. PitchPilot is a
+- AGPL §13 (network interaction) doesn't apply in practice. VocalTuneBtw is a
   local plugin with no network features.
 
 ## If plans change to closed source

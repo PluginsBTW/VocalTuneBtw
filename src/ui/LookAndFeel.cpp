@@ -16,7 +16,7 @@ LookAndFeel::LookAndFeel()
 {
     setColour (juce::Label::textColourId, colours::text);
     setColour (juce::TextButton::textColourOffId, colours::text);
-    setColour (juce::TextButton::textColourOnId, colours::text);
+    setColour (juce::TextButton::textColourOnId, colours::textOnAccent);
     setColour (juce::ComboBox::textColourId, colours::accent);
     setColour (juce::ComboBox::arrowColourId, colours::textDim);
     setColour (juce::PopupMenu::backgroundColourId, colours::panel);
@@ -31,35 +31,42 @@ void LookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int width, 
     const auto bounds = juce::Rectangle<float> (static_cast<float> (x), static_cast<float> (y),
                                                 static_cast<float> (width), static_cast<float> (height));
     const auto centre = bounds.getCentre();
-    const float arcRadius = juce::jmin (bounds.getWidth(), bounds.getHeight()) * 0.5f - 4.0f;
+    const float arcRadius = juce::jmin (bounds.getWidth(), bounds.getHeight()) * 0.5f - 8.0f;
+    const float thickness = juce::jmax (4.0f, arcRadius * 0.09f);
     const float angle = startAngle + sliderPos * (endAngle - startAngle);
-    const juce::PathStrokeType stroke (2.5f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded);
+    auto stroke = [] (float w) { return juce::PathStrokeType (w, juce::PathStrokeType::curved, juce::PathStrokeType::rounded); };
 
     juce::Path track;
     track.addCentredArc (centre.x, centre.y, arcRadius, arcRadius, 0.0f, startAngle, endAngle, true);
-    g.setColour (colours::edge);
-    g.strokePath (track, stroke);
+    g.setColour (colours::track);
+    g.strokePath (track, stroke (thickness));
 
+    // Value arc with a soft glow.
     juce::Path value;
     value.addCentredArc (centre.x, centre.y, arcRadius, arcRadius, 0.0f, startAngle, angle, true);
+    g.setColour (colours::accent.withAlpha (0.15f));
+    g.strokePath (value, stroke (thickness * 3.0f));
     g.setColour (colours::accent);
-    g.strokePath (value, stroke);
+    g.strokePath (value, stroke (thickness));
 
-    const float bodyRadius = arcRadius * 0.76f;
+    // Flat dark body.
+    const float bodyRadius = arcRadius - thickness * 2.2f;
     const auto body = juce::Rectangle<float> (bodyRadius * 2.0f, bodyRadius * 2.0f).withCentre (centre);
-    g.setColour (juce::Colours::black.withAlpha (0.45f));
-    g.fillEllipse (body.translated (0.0f, 4.0f).expanded (2.0f));
+    g.setColour (juce::Colours::black.withAlpha (0.4f));
+    g.fillEllipse (body.translated (0.0f, 3.0f).expanded (2.0f));
     g.setGradientFill (juce::ColourGradient (colours::knobTop, centre.x, body.getY(), colours::knobBottom, centre.x,
                                              body.getBottom(), false));
     g.fillEllipse (body);
     g.setColour (colours::edge);
     g.drawEllipse (body, 1.0f);
 
-    juce::Path pointer;
-    pointer.startNewSubPath (polar (centre, bodyRadius * 0.55f, angle));
-    pointer.lineTo (polar (centre, bodyRadius * 0.85f, angle));
-    g.setColour (colours::text);
-    g.strokePath (pointer, juce::PathStrokeType (3.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    // Dot at the end of the value arc.
+    const float dot = thickness * 1.1f;
+    const auto tip = polar (centre, arcRadius, angle);
+    g.setColour (colours::accent.withAlpha (0.3f));
+    g.fillEllipse (juce::Rectangle<float> (dot * 3.0f, dot * 3.0f).withCentre (tip));
+    g.setColour (colours::accent.brighter (0.4f));
+    g.fillEllipse (juce::Rectangle<float> (dot * 2.0f, dot * 2.0f).withCentre (tip));
 }
 
 void LookAndFeel::drawButtonBackground (juce::Graphics& g, juce::Button& button, const juce::Colour&, bool highlighted,
@@ -67,13 +74,13 @@ void LookAndFeel::drawButtonBackground (juce::Graphics& g, juce::Button& button,
 {
     const auto bounds = button.getLocalBounds().toFloat().reduced (0.5f);
     const bool on = button.getToggleState();
-    auto fill = on ? colours::accentDim : colours::panel;
+    auto fill = on ? colours::accent : colours::panel;
     if (highlighted || down)
         fill = fill.brighter (down ? 0.2f : 0.1f);
     g.setColour (fill);
-    g.fillRoundedRectangle (bounds, 4.0f);
-    g.setColour (on ? colours::accent : colours::edge);
-    g.drawRoundedRectangle (bounds, 4.0f, 1.0f);
+    g.fillRoundedRectangle (bounds, 6.0f);
+    g.setColour (on ? colours::accent.brighter (0.3f) : colours::edge);
+    g.drawRoundedRectangle (bounds, 6.0f, 1.0f);
 }
 
 juce::Font LookAndFeel::getTextButtonFont (juce::TextButton&, int)
