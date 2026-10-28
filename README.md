@@ -132,8 +132,8 @@ sudo apt install build-essential cmake ninja-build git libasound2-dev libfreetyp
 ### Build
 
 ```bash
-git clone <repository-url> vocaltunebtw
-cd vocaltunebtw
+git clone https://github.com/PluginsBTW/VocalTuneBtw.git
+cd VocalTuneBtw
 scripts/build-linux.sh
 ```
 
