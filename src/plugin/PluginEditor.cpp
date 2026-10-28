@@ -9,9 +9,7 @@ PitchPilotEditor::PitchPilotEditor (PitchPilotProcessor& owner) : AudioProcessor
     setLookAndFeel (&lookAndFeel);
     addAndMakeVisible (panel);
 
-    setResizable (true, true);
-    setResizeLimits (ui::designWidth * 3 / 4, ui::designHeight * 3 / 4, ui::designWidth * 2, ui::designHeight * 2);
-    getConstrainer()->setFixedAspectRatio (static_cast<double> (ui::designWidth) / ui::designHeight);
+    setResizable (false, false);
     setSize (ui::designWidth, ui::designHeight);
     startTimerHz (30);
 }
@@ -23,7 +21,7 @@ PitchPilotEditor::~PitchPilotEditor()
 
 void PitchPilotEditor::resized()
 {
-    panel.setTransform (juce::AffineTransform::scale (static_cast<float> (getWidth()) / ui::designWidth));
+    panel.setBounds (getLocalBounds());
 }
 
 void PitchPilotEditor::timerCallback()

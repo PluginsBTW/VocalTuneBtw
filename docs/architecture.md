@@ -13,7 +13,7 @@ It builds VST3, CLAP and a Standalone app from one codebase.
 │ Plugin layer      src/plugin   (JUCE)                         │
 │   PluginProcessor  parameters (APVTS), state, bus layouts,    │
 │                    latency reporting, telemetry atomics       │
-│   PluginEditor     scales src/ui/MainPanel (custom UI)        │
+│   PluginEditor     hosts src/ui/MainPanel (fixed-size UI)     │
 ├──────────────────────────────────────────────────────────────┤
 │ DSP engine        src/dsp      (plain C++20, no JUCE)         │
 │   PitchCorrector   facade: one prepare() + process() call     │

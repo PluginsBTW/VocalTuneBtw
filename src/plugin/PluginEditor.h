@@ -9,7 +9,7 @@
 
 namespace pitchpilot
 {
-// Hosts the main panel at its design size and scales it to the window.
+// Hosts the main panel in a fixed-size window.
 class PitchPilotEditor final : public juce::AudioProcessorEditor, private juce::Timer
 {
 public:

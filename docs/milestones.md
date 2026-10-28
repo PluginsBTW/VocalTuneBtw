@@ -26,11 +26,11 @@ checked against something we can measure.
 
 ## M3 — Custom UI *(first pass done: knobs, cents meter, note keyboard, settings overlay)*
 
-- Dark charcoal and cyan design: root and scale selectors, a piano-key note
+- Dark navy and blue design: root and scale selectors, a piano-key note
   mask editor, rotary knobs for speed, detune and strength.
 - Tuning display: detected note, target note, cents meter and a pitch-history
   trace from the telemetry atomics.
-- Resizable layout, keyboard accessibility, correct sync with host automation.
+- Fixed-size layout, keyboard accessibility, correct sync with host automation.
 
 ## M4 — Formats, latency and stress
 
