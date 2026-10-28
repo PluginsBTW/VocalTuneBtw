@@ -105,6 +105,12 @@ The DSP code in `src/dsp` is plain C++20 with no JUCE dependency and is
 tested on its own. The full design is in
 [docs/architecture.md](docs/architecture.md).
 
+## Download
+
+Prebuilt VST3 and Standalone binaries for x86-64 Linux (glibc 2.35 or newer)
+are on the [Releases page](https://github.com/PluginsBTW/VocalTuneBtw/releases).
+Extract the archive and copy `VocalTuneBtw.vst3` to `~/.vst3/`.
+
 ## Building
 
 ### Requirements
