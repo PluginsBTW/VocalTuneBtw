@@ -5,16 +5,9 @@
 VocalTuneBtw listens to a single voice, finds the nearest note in the key and
 scale you choose, and glides the voice onto it. Set it fast for the hard,
 robotic snap. Set it slow for transparent correction that keeps vibrato and
-slides intact. It runs as a VST3 plugin (with optional CLAP) and as a
-Standalone app.
+slides intact. It runs as a VST3 or CLAP plugin and as a Standalone app.
 
 ![VocalTuneBtw correcting an A that is 12 cents sharp](docs/images/note.png)
-
-> **Status: early prototype (v0.2).** Detection, scale mapping, correction
-> and pitch shifting work and are covered by automated tests. It has been
-> used in Bitwig Studio but hasn't yet been evaluated systematically on
-> recorded vocals. See [docs/milestones.md](docs/milestones.md) for the
-> roadmap.
 
 ## Features
 
@@ -32,7 +25,7 @@ Standalone app.
   up to ±100 cents, and A4 tuning from 415 to 466 Hz.
 - **Live tuning meter.** Shows the target note, its octave and the deviation
   in cents. The keyboard highlights the note being corrected.
-- **Low latency.** 5.5–12.5 ms depending on the voice range. The plugin
+- **Low latency.** 3.8–10.8 ms depending on the voice range. The plugin
   reports it to the host for automatic delay compensation.
 - **Click-free bypass**, exposed to the host and automatable.
 - **Mono or stereo.** Stereo channels are shifted together, so the image
@@ -78,9 +71,9 @@ so a higher Voice Range means lower latency. Values at 48 kHz:
 
 | Voice Range | Lowest note | Latency |
 |---|---|---|
-| Low | 50 Hz | 12.5 ms |
-| Normal | 80 Hz | 8.6 ms |
-| High | 150 Hz | 5.5 ms |
+| Low | 50 Hz | 10.8 ms |
+| Normal | 80 Hz | 6.8 ms |
+| High | 150 Hz | 3.8 ms |
 
 Pick the highest range that still covers the singer's lowest note. The
 current value is shown on the settings page.
@@ -107,9 +100,10 @@ tested on its own. The full design is in
 
 ## Download
 
-Prebuilt VST3 and Standalone binaries for x86-64 Linux are on the
+Prebuilt VST3, CLAP and Standalone binaries for x86-64 Linux are on the
 [Releases page](https://github.com/PluginsBTW/VocalTuneBtw/releases).
-Extract the archive and copy `VocalTuneBtw.vst3` to `~/.vst3/`. Each
+Extract the archive and copy `VocalTuneBtw.vst3` to `~/.vst3/`, or
+`VocalTuneBtw.clap` to `~/.clap/`. Each
 release lists the glibc version it needs; on older systems, build from
 source.
 
@@ -205,8 +199,8 @@ src/ui/       look and feel, knobs, tuning meter, keyboard, main panel
 tests/        Catch2 tests: pitch accuracy, scales, correction, shifter, real-time safety, clicks
 tools/        vtb-render: offline renderer with pitch-error and click metrics (no JUCE)
 assets/       the Ubuntu Light font and its licence
-docs/         architecture, milestones, licensing, screenshots
-scripts/      build script
+docs/         architecture, DSP evaluation, licensing, release notes, screenshots
+scripts/      build and packaging scripts
 ```
 
 ## License
@@ -225,8 +219,8 @@ Third-party code:
 |---|---|---|
 | [JUCE](https://juce.com) 9.0.4 | AGPLv3 (used under this option) | plugin framework, GUI, VST3 and Standalone wrappers |
 | VST3 SDK (bundled with JUCE) | MIT | VST3 interfaces |
-| [clap-juce-extensions](https://github.com/free-audio/clap-juce-extensions) | MIT | CLAP wrapper (optional) |
-| CLAP, clap-helpers | MIT | CLAP interfaces (optional) |
+| [clap-juce-extensions](https://github.com/free-audio/clap-juce-extensions) | MIT | CLAP wrapper |
+| CLAP, clap-helpers | MIT | CLAP interfaces |
 | [Catch2](https://github.com/catchorg/Catch2) 3.7.1 | BSL-1.0 | unit tests only, not shipped |
 | [Ubuntu](https://design.ubuntu.com/font) Light font | Ubuntu Font Licence 1.0 | the interface typeface, embedded in the editor |
 

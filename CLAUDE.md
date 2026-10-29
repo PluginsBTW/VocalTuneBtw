@@ -2,7 +2,6 @@
 
 Monophonic real-time pitch-correction plugin (VST3, CLAP, Standalone) for Linux.
 C++20 + JUCE. Licensed AGPL-3.0-or-later. Design: `docs/architecture.md`.
-Roadmap: `docs/milestones.md`.
 
 ## Commands
 
