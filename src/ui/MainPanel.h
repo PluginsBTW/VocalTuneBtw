@@ -62,6 +62,8 @@ private:
     PitchPilotProcessor& processor;
     juce::AudioProcessorValueTreeState& state;
 
+    // Invisible link over the painted logo and wordmark.
+    juce::HyperlinkButton logoLink { {}, juce::URL ("https://github.com/PluginsBTW/VocalTuneBtw") };
     IconButton settingsButton { "Settings", IconButton::Icon::settings };
     IconButton powerButton { "Bypass", IconButton::Icon::power };
     juce::TextButton naturalButton { "Natural" }, hardButton { "Hard" };

@@ -152,6 +152,8 @@ MainPanel::MainPanel (PitchPilotProcessor& p)
       keyboard (state),
       settings (p)
 {
+    logoLink.setTitle ("VocalTuneBtw on GitHub");
+    addAndMakeVisible (logoLink);
     addAndMakeVisible (settingsButton);
     addAndMakeVisible (powerButton);
     bypassAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (state, ParamID::bypass, powerButton);
@@ -285,6 +287,9 @@ void MainPanel::paint (juce::Graphics& g)
 
 void MainPanel::resized()
 {
+    // From the ring's left edge to the end of the wordmark painted in paint().
+    const auto wordmarkWidth = juce::GlyphArrangement::getStringWidth (font (type::wordmark), "VocalTuneBtw");
+    logoLink.setBounds (18, 11, 56 - 18 + juce::roundToInt (wordmarkWidth) + 4, 32);
     settingsButton.setBounds (designWidth - 82, 12, 28, 28);
     powerButton.setBounds (designWidth - 44, 12, 28, 28);
 
