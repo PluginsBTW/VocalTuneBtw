@@ -1,5 +1,6 @@
 #include "MainPanel.h"
 
+#include "LookAndFeel.h"
 #include "Theme.h"
 #include "plugin/PluginProcessor.h"
 
@@ -83,11 +84,13 @@ SettingsPanel::SettingsPanel (PitchPilotProcessor& p)
 
     fillFromChoices (range, p.state(), ParamID::range);
     rangeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (p.state(), ParamID::range, range);
+    range.setRepaintsOnMouseActivity (true);
     addAndMakeVisible (range);
 }
 
 void SettingsPanel::refresh()
 {
+    updateHover (range);
     const double rate = processor.getSampleRate();
     const auto text = rate > 0.0 ? "Latency " + juce::String (1000.0 * processor.getLatencySamples() / rate, 1) + " ms ("
                                        + juce::String (processor.getLatencySamples()) + " samples)"
@@ -173,6 +176,8 @@ MainPanel::MainPanel (PitchPilotProcessor& p)
     fillFromChoices (scaleBox, state, ParamID::scale);
     keyAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (state, ParamID::root, keyBox);
     scaleAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (state, ParamID::scale, scaleBox);
+    keyBox.setRepaintsOnMouseActivity (true);
+    scaleBox.setRepaintsOnMouseActivity (true);
     addAndMakeVisible (keyBox);
     addAndMakeVisible (scaleBox);
 
@@ -203,6 +208,8 @@ bool MainPanel::parameterIs (const juce::String& id, float value) const
 
 void MainPanel::refresh()
 {
+    updateHover (keyBox);
+    updateHover (scaleBox);
     const auto& t = processor.telemetry();
     const int note = t.targetNote.load (std::memory_order_relaxed);
     const float cents = t.deviationCents.load (std::memory_order_relaxed);

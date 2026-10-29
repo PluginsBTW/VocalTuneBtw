@@ -95,13 +95,21 @@ juce::Font LookAndFeel::getTextButtonFont (juce::TextButton&, int)
 
 void LookAndFeel::drawComboBox (juce::Graphics& g, int width, int height, bool, int, int, int, int, juce::ComboBox& box)
 {
+    // Like the buttons: raised-hover while hovered or open, and the chevron lights to text.
+    const bool hot = isHot (box);
+    if (hot)
+    {
+        g.setColour (colours::raisedHover);
+        g.fillRoundedRectangle (juce::Rectangle<float> (static_cast<float> (width), static_cast<float> (height)).reduced (3.0f), 4.0f);
+    }
+
     const float arrowX = static_cast<float> (width) - 14.0f;
     const float midY = static_cast<float> (height) * 0.5f;
     juce::Path arrow;
     arrow.startNewSubPath (arrowX - 4.0f, midY - 2.0f);
     arrow.lineTo (arrowX, midY + 2.0f);
     arrow.lineTo (arrowX + 4.0f, midY - 2.0f);
-    g.setColour (box.findColour (juce::ComboBox::arrowColourId));
+    g.setColour (hot ? colours::text : box.findColour (juce::ComboBox::arrowColourId));
     g.strokePath (arrow, juce::PathStrokeType (1.5f));
 }
 
@@ -112,12 +120,65 @@ juce::Font LookAndFeel::getComboBoxFont (juce::ComboBox&)
 
 void LookAndFeel::positionComboBoxText (juce::ComboBox& box, juce::Label& label)
 {
-    label.setBounds (0, 0, box.getWidth() - 22, box.getHeight());
+    label.setBounds (4, 0, box.getWidth() - 26, box.getHeight());
     label.setFont (getComboBoxFont (box));
 }
 
 juce::Font LookAndFeel::getPopupMenuFont()
 {
     return font (type::controlLabel);
+}
+
+juce::PopupMenu::Options LookAndFeel::getOptionsForComboBoxPopupMenu (juce::ComboBox& box, juce::Label& label)
+{
+    return LookAndFeel_V4::getOptionsForComboBoxPopupMenu (box, label).withParentComponent (box.getTopLevelComponent());
+}
+
+void LookAndFeel::preparePopupMenuWindow (juce::Component& window)
+{
+    window.setOpaque (false);
+}
+
+void LookAndFeel::drawPopupMenuBackgroundWithOptions (juce::Graphics& g, int width, int height, const juce::PopupMenu::Options&)
+{
+    // No border: the raised fill alone sets the menu off the panel.
+    g.setColour (colours::raised);
+    g.fillRoundedRectangle (juce::Rectangle<float> (static_cast<float> (width), static_cast<float> (height)), 7.0f);
+}
+
+int LookAndFeel::getPopupMenuBorderSizeWithOptions (const juce::PopupMenu::Options&)
+{
+    return 4;
+}
+
+void LookAndFeel::drawPopupMenuItem (juce::Graphics& g, const juce::Rectangle<int>& area, bool isSeparator, bool isActive,
+                                     bool isHighlighted, bool isTicked, bool hasSubMenu, const juce::String& text,
+                                     const juce::String& shortcutKeyText, const juce::Drawable* icon, const juce::Colour* textColour)
+{
+    // A rounded highlight inset from the menu's sides (items span the full width);
+    // the base class then draws the item without its square one.
+    if (isHighlighted && isActive && ! isSeparator)
+    {
+        g.setColour (colours::raisedHover);
+        g.fillRoundedRectangle (area.toFloat().reduced (4.0f, 1.0f), 4.0f);
+    }
+    LookAndFeel_V4::drawPopupMenuItem (g, area, isSeparator, isActive, false, isTicked, hasSubMenu, text, shortcutKeyText, icon,
+                                       textColour);
+}
+
+bool isHot (const juce::ComboBox& box)
+{
+    return box.isEnabled() && box.isShowing()
+           && (box.isPopupActive() || box.getScreenBounds().contains (juce::Desktop::getMousePosition()));
+}
+
+void updateHover (juce::ComboBox& box)
+{
+    const bool hot = isHot (box);
+    if (box.getProperties()["hot"] != juce::var (hot))
+    {
+        box.getProperties().set ("hot", hot);
+        box.repaint();
+    }
 }
 } // namespace pitchpilot::ui
