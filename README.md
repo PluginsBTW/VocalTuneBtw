@@ -10,7 +10,7 @@ Standalone app.
 
 ![VocalTuneBtw correcting an A that is 12 cents sharp](docs/images/note.png)
 
-> **Status: early prototype (v0.1).** Detection, scale mapping, correction
+> **Status: early prototype (v0.2).** Detection, scale mapping, correction
 > and pitch shifting work and are covered by automated tests. It has been
 > used in Bitwig Studio but hasn't yet been evaluated systematically on
 > recorded vocals. See [docs/milestones.md](docs/milestones.md) for the
@@ -21,9 +21,9 @@ Standalone app.
 - **Key and scale snapping.** 12 root notes and 14 scales: Chromatic, Major,
   Natural/Harmonic/Melodic Minor, Dorian, Phrygian, Lydian, Mixolydian,
   Locrian, Major/Minor Pentatonic, Blues and Custom.
-- **Per-note control.** Click a lit key on the on-screen keyboard to remove
-  that note from the scale; the voice then snaps to the neighbouring notes
-  instead.
+- **Per-note control.** The keyboard shows one octave with every note once.
+  Click a lit key to remove that note from the scale; the voice then snaps to
+  the neighbouring notes instead. Click it again to bring it back.
 - **Retune Speed from 1 to 200 ms.** One-click **Natural** (50 ms, light
   humanize) and **Hard** (1 ms, no humanize) presets.
 - **Humanize.** Notes that are already close to the target are left alone,
@@ -53,7 +53,7 @@ Standalone app.
 | Control | Range | What it does |
 |---|---|---|
 | Key / Scale | 12 roots × 14 scales | The notes the voice is pulled to. |
-| Keyboard | per note | Lit keys are in the scale. Click one to switch that note off or on again. |
+| Keyboard | per note | One octave. Lit keys are in the scale; the note being corrected is blue. Click a key in the scale to switch it off (dark) or on again. |
 | Retune Speed | 1–200 ms | How fast the voice moves to the target. Low values give the hard, stepped effect. |
 | Humanize | Off–100 % | Deviations smaller than this are left uncorrected (0–50 cents). |
 | Natural / Hard | presets | Set Retune Speed and Humanize in one click. The active preset lights up. |
@@ -202,7 +202,9 @@ doesn't list the plugin twice.
 src/dsp/      pitch detection, scales, correction and shifting (no JUCE)
 src/plugin/   JUCE processor, parameters and editor
 src/ui/       look and feel, knobs, tuning meter, keyboard, main panel
-tests/        Catch2 tests: pitch accuracy, scales, correction, shifter, real-time safety
+tests/        Catch2 tests: pitch accuracy, scales, correction, shifter, real-time safety, clicks
+tools/        vtb-render: offline renderer with pitch-error and click metrics (no JUCE)
+assets/       the Ubuntu Light font and its licence
 docs/         architecture, milestones, licensing, screenshots
 scripts/      build script
 ```
@@ -226,6 +228,7 @@ Third-party code:
 | [clap-juce-extensions](https://github.com/free-audio/clap-juce-extensions) | MIT | CLAP wrapper (optional) |
 | CLAP, clap-helpers | MIT | CLAP interfaces (optional) |
 | [Catch2](https://github.com/catchorg/Catch2) 3.7.1 | BSL-1.0 | unit tests only, not shipped |
+| [Ubuntu](https://design.ubuntu.com/font) Light font | Ubuntu Font Licence 1.0 | the interface typeface, embedded in the editor |
 
 The dependency audit and what distributing binaries requires are in
 [docs/licensing.md](docs/licensing.md).
