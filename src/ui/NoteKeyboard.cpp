@@ -65,9 +65,9 @@ void NoteKeyboard::paint (juce::Graphics& g)
         const auto area = keyArea (pc);
         const bool scale = inScale (pc), lit = scale && enabled (pc), active = pc == activePitchClass;
 
-        // Lit: a filled key. Removed from the scale or outside it: the same dark
-        // key with a hairline. Removed keys keep a readable label, as they can be
-        // clicked back on.
+        // Lit: a filled key. Removed from the scale: a dark key with a hairline
+        // and a readable label, as it can be clicked back on. Outside the
+        // scale: the same dark key without a border and with a faint label.
         const auto keyColour = black[pc] ? blackKey : colours::text;
         juce::Colour label;
         if (active)
@@ -88,8 +88,11 @@ void NoteKeyboard::paint (juce::Graphics& g)
         {
             g.setColour (colours::display);
             g.fillRoundedRectangle (area, radius);
-            g.setColour (colours::edge);
-            g.drawRoundedRectangle (area.reduced (0.5f), radius, 1.0f);
+            if (scale)
+            {
+                g.setColour (colours::edge);
+                g.drawRoundedRectangle (area.reduced (0.5f), radius, 1.0f);
+            }
             label = scale ? colours::textDim : colours::textDim.withMultipliedAlpha (0.35f);
         }
 
