@@ -34,7 +34,7 @@ native CLAP one) without changes.
 
 1. Mix the input channels to mono for analysis.
 2. `PitchDetector::push` runs two cascaded 2.5 kHz low-pass biquads and
-   decimates to about 16 kHz. Every hop (about 5 ms) it runs YIN over a window
+   decimates to about 16 kHz. Every hop (about 2.5 ms) it runs YIN over a window
    sized to the selected voice range.
 3. When a new estimate arrives, `CorrectionController::update` converts the
    frequency to continuous MIDI pitch, `m = 69 + 12·log2(f / ref)`. It then
@@ -46,7 +46,11 @@ native CLAP one) without changes.
    samples per sample. When the tap leaves its delay range (one period of the
    range's lowest note, plus a margin), a second tap starts a whole number of
    detected periods away, and a 1 ms raised-cosine crossfade hands over to it. Period-aligned splices stay in phase, which avoids
-   the cancellation and pitch error of a fixed two-tap design.
+   the cancellation and pitch error of a fixed two-tap design. Without a
+   detected period (consonants, breaths, onsets the detector hasn't caught
+   yet), the jump goes to wherever the last 2 ms of waveform match best,
+   between half and a full delay range away. Neither tap ever reads closer
+   than 1 sample to the write position.
 6. The output crossfades between the shifted signal and a dry signal delayed by
    the shifter latency, over a 10 ms ramp, for click-free bypass.
 
@@ -68,7 +72,7 @@ native CLAP one) without changes.
 | Stage | Latency | Reported to host |
 |---|---|---|
 | Pitch shifter | rest delay = crossfade headroom for shifts up to 3 semitones (12 samples, 0.25 ms at 48 kHz) + half of 1.05 × the longest period in the voice range: Low 10.8 ms, Normal 6.8 ms, High 3.8 ms (516 / 327 / 180 samples at 48 kHz). Bigger upward shifts start their splice earlier instead of raising the latency. The tap wanders within that range while shifting. | yes (rest delay; updated from the message thread when the range changes) |
-| Pitch detection | about 2 periods of the lowest range note + one hop (Normal range: about 30 ms) | no: the correction arrives late, the audio is not delayed |
+| Pitch detection | about 2 periods of the lowest range note + one hop (Normal range: about 28 ms) | no: the correction arrives late, the audio is not delayed |
 
 Detection lag means that note onsets reach their target about one detection
 window late. Fixing this would need look-ahead, which would add latency.

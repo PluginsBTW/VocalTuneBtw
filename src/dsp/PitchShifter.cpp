@@ -18,7 +18,9 @@ void PitchShifter::prepare (double sampleRate, int numChannels, float minLowestH
     minDelay = std::ceil (fadeLength * (restHeadroomRatio - 1.0f)) + 2.0f;
     setLowestFrequency (minLowestHz);
 
-    const auto size = std::bit_ceil (static_cast<unsigned> (maxDelay + fadeLength) + 4u);
+    // Room for taps overshooting maxDelay during a fade, plus the window
+    // matchingJump() compares behind the farthest candidate.
+    const auto size = std::bit_ceil (static_cast<unsigned> (maxDelay + 4.0f * fadeLength) + 4u);
     mask = static_cast<int> (size) - 1;
     delayLines.assign (static_cast<size_t> (std::max (1, numChannels)), std::vector<float> (size, 0.0f));
     reset();
@@ -56,12 +58,55 @@ float PitchShifter::readTap (const std::vector<float>& buffer, float tapDelay) c
     return buffer[static_cast<size_t> (i0)] + fraction * (buffer[static_cast<size_t> (i1)] - buffer[static_cast<size_t> (i0)]);
 }
 
-float PitchShifter::jumpLength() const noexcept
+float PitchShifter::jumpLength (bool up) const noexcept
 {
     const float range = maxDelay - minDelay;
     if (period < 2.0f || period > range)
-        return range;
+        return matchingJump (up);
     return std::floor (range / period) * period;
+}
+
+float PitchShifter::matchingJump (bool up) const noexcept
+{
+    // Compare the samples the current tap has just read with those behind each
+    // candidate tap position. The score is 1 for identical windows and falls
+    // with both shape and level differences. Ties keep the longest jump, so
+    // silence splices as far as the range allows.
+    const float range = maxDelay - minDelay;
+    const int window = static_cast<int> (2.0f * fadeLength);
+    const int longest = static_cast<int> (range), shortest = static_cast<int> (std::ceil (range * 0.5f));
+    const int current = writePos - 1 - static_cast<int> (std::lround (delay));
+
+    float currentEnergy = 0.0f;
+    for (const auto& line : delayLines)
+        for (int k = 0; k < window; ++k)
+        {
+            const float a = line[static_cast<size_t> ((current - k) & mask)];
+            currentEnergy += a * a;
+        }
+
+    int best = longest;
+    float bestScore = -1.0f;
+    for (int jump = longest; jump >= shortest; --jump)
+    {
+        const int candidate = up ? current - jump : current + jump;
+        float cross = 0.0f, energy = 0.0f;
+        for (const auto& line : delayLines)
+            for (int k = 0; k < window; ++k)
+            {
+                const float a = line[static_cast<size_t> ((current - k) & mask)];
+                const float b = line[static_cast<size_t> ((candidate - k) & mask)];
+                cross += a * b;
+                energy += b * b;
+            }
+        const float score = 2.0f * cross / (currentEnergy + energy + 1.0e-12f);
+        if (score > bestScore)
+        {
+            bestScore = score;
+            best = jump;
+        }
+    }
+    return static_cast<float> (best);
 }
 
 void PitchShifter::process (float* const* channels, int numChannels, int numSamples, const float* ratios) noexcept
@@ -78,7 +123,8 @@ void PitchShifter::process (float* const* channels, int numChannels, int numSamp
         if (fadeRemaining == 0 && (delay <= spliceUpAt || delay >= maxDelay))
         {
             fadingDelay = delay;
-            delay += delay <= spliceUpAt ? jumpLength() : -jumpLength();
+            const bool up = delay <= spliceUpAt;
+            delay += up ? jumpLength (up) : -jumpLength (up);
             fadeRemaining = static_cast<int> (fadeLength);
         }
 
@@ -97,8 +143,10 @@ void PitchShifter::process (float* const* channels, int numChannels, int numSamp
         float step = 1.0f - ratio;
         if (std::abs (step) < 1.0e-4f && ! fading)
             step += std::clamp (centre - delay, -maxDrift, maxDrift);
-        delay += step;
-        // If the ratio rises during a fade, never read ahead of the write position.
+        // If the ratio rises during a fade, neither tap may read ahead of the
+        // write position. A downward splice lands the new tap near minDelay,
+        // and no splice can start until the fade is over.
+        delay = std::max (delay + step, 1.0f);
         fadingDelay = std::max (fadingDelay + step, 1.0f);
         if (fading)
             --fadeRemaining;

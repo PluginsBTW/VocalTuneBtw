@@ -46,3 +46,17 @@ TEST_CASE ("Silence and white noise are unvoiced")
     test::medianDetectedHz (noise, 48000.0, 0.1, 80.0f, 800.0f, &voiced);
     CHECK (voiced < 0.1);
 }
+
+TEST_CASE ("The detector updates its estimate every 2.5 ms")
+{
+    // Shorter hops let the correction follow the voice more closely now that
+    // the shifter delays the audio less.
+    const double sampleRate = GENERATE (44100.0, 48000.0, 96000.0);
+    dsp::PitchDetector detector;
+    detector.prepare (sampleRate);
+    int hops = 0;
+    for (int i = 0; i < static_cast<int> (sampleRate); ++i)
+        hops += detector.push (0.0f) ? 1 : 0;
+    INFO ("rate " << sampleRate << ": " << hops << " hops in 1 s");
+    CHECK (std::abs (hops - 400) <= 2);
+}

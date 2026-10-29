@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <vector>
 
 namespace pitchpilot::dsp
@@ -9,7 +10,8 @@ namespace pitchpilot::dsp
 // second tap starts a whole number of input periods away and the output
 // crossfades to it. Because the jump is period-aligned, the two taps are in
 // phase for periodic input, so there's no phase cancellation and no pitch error.
-// All channels share the tap positions, so stereo stays coherent.
+// Without a usable period, the jump goes to where the recent waveform matches
+// best instead. All channels share the tap positions, so stereo stays coherent.
 class PitchShifter
 {
 public:
@@ -35,12 +37,20 @@ public:
     // Delay at rest, in samples. The tap wanders around this while shifting.
     int latencySamples() const noexcept { return static_cast<int> (centre); }
 
+    // How far the actual delay can stray from latencySamples() while shifting:
+    // half the delay range, plus the overshoot of splices and fading taps.
+    int latencySpreadSamples() const noexcept
+    {
+        return static_cast<int> (std::ceil ((maxDelay - minDelay) * 0.5f + 2.0f * fadeLength));
+    }
+
     // In-place. ratios[i] is the pitch ratio for sample i.
     void process (float* const* channels, int numChannels, int numSamples, const float* ratios) noexcept;
 
 private:
     float readTap (const std::vector<float>& buffer, float delay) const noexcept;
-    float jumpLength() const noexcept;
+    float jumpLength (bool up) const noexcept;
+    float matchingJump (bool up) const noexcept;
 
     std::vector<std::vector<float>> delayLines;
     int mask = 0, writePos = 0;

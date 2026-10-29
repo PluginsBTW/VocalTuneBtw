@@ -10,7 +10,7 @@ namespace
 {
     constexpr double targetAnalysisRate = 16000.0;
     constexpr double lowpassCutoffHz = 2500.0;
-    constexpr double hopSeconds = 0.005;
+    constexpr double hopSeconds = 0.0025;
     constexpr float silenceMeanSquare = 1.0e-6f; // about −60 dBFS RMS
 } // namespace
 

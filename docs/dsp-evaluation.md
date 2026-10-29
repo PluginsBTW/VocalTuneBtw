@@ -16,8 +16,10 @@ JUCE, and prints:
 - **Voiced fraction**: voiced hops divided by all hops, for input and output.
 - **Click score**: at each output sample, the jump |x[n] − x[n−1]| divided by
   the RMS of the jumps within ±5 ms (excluding ±2 samples around n). That value
-  is then divided by the largest such score of the input within ±10 ms of the
-  same moment (output time − latency), with the input term floored at √2.
+  is then divided by the largest such score of the input near the same moment
+  (output time − latency), with the input term floored at √2. "Near" is
+  ±`latencySpreadSamples()`, how far the shifter's tap can stray from the
+  latency, and at least ±10 ms (before 2026-10-29 it was always ±10 ms).
   About 1 means "no sharper than the input". Events above 2 are listed with
   timestamps. The exit code is 3 when any are listed.
 - **CPU**: time spent in `engine.process` only, as a share of real time, and
@@ -217,3 +219,72 @@ estimate describes audio from further back than the audio now being shifted.
 v1 and v3 lose about the same in proportion to their cut.
 
 Still needed before release: the user's listening test in Bitwig.
+
+## After 1.0.1: splices without a period, a read-ahead fix, 2.5 ms hops
+
+Measured 2026-10-29 against the 1.0.1 shifter, both with the click window
+from `latencySpreadSamples()`. `dry.wav`, 162 settings per version: Low,
+Normal and High; natural minor, minor pentatonic, chromatic; speed 1/10/25 ms;
+blocks 64/512; detune 0, +100 and −100 cents.
+
+**Splices without a period.** When the detector has no pitch (consonants,
+breaths, onsets it hasn't caught yet), the shifter used to jump a full delay
+range, which is rarely a whole number of periods. On a 220 Hz sine with no
+period hint, that made each crossfade dip by about 12 dB
+(`tests/test_pitch_shifter.cpp`, "Splices without a period hint stay in
+phase"; measured by demodulating at the output frequency over one period).
+The shifter now compares the last 2 fade lengths before the current tap with
+every jump between half and a full range and takes the best match. The dip
+falls to at most 0.03 dB, the same as with a correct hint.
+
+**Read-ahead fix.** A downward splice lands the new tap near `minDelay`
+(11 samples at 44.1 kHz since 1.0.0). If the ratio then jumps far upward
+during the 1 ms fade (more than about 3.6 semitones up right after shifting
+down, as a sparse Custom scale at speed 1 ms can do), the new tap moved past
+the write position and read samples a whole buffer old. 1.0.0 and 1.0.1 do
+this; 0.2.0 didn't (its headroom covered a full fade). Found by "The delay
+stays within latencySpreadSamples() of the latency". Both taps are now
+clamped to at least 1 sample.
+
+| `dry.wav`, 162 settings | 1.0.1 | Period-matched splices | + 2.5 ms hop (current) |
+|---|---|---|---|
+| Click events, detune 0 | 0 | 0 | 0 |
+| Click events, detune ±100 | 18 in 17 runs, max 3.83 | 4, max 3.47 | 6, max 3.41 |
+
+The two largest remaining events (3.41 in High at 10.28 s, 2.83 in Normal at
+4.02 s) are low-level: jumps of about −59 dBFS just before a note starts,
+where the input sits at −70 to −74 dBFS. The other four (2.07–2.12) weren't
+inspected. The
+vocal-like click test's worst score is 1.44 (1.0.1: 1.39). A level check
+(12 ms RMS against the dry signal within the tap's spread) finds the same
+worst spot in every version, the end of a note at 0.48 s, so it shows no
+consistent difference.
+
+**2.5 ms detector hop.** Pitch error out on `dry.wav`, block 512, measured
+on both outputs with the 5 ms detector so the measuring tool is the same:
+
+| Settings | 1.0.1 (5 ms hop) | 2.5 ms hop | 0.2.0 |
+|---|---|---|---|
+| Normal, natural minor, speed 1 ms | 9.8 / 47.0 | 9.2 / 44.9 | 8.2 / 41.9 |
+| Normal, natural minor, speed 10 ms | 14.8 / 55.8 | 13.7 / 56.7 | – |
+| Normal, natural minor, speed 25 ms | 20.3 / 63.0 | 19.3 / 62.6 | 19.4 / 61.2 |
+| Normal, minor pentatonic, speed 1 ms | 9.9 / 49.9 | 8.7 / 44.3 | 8.3 / 45.2 |
+| Low, natural minor, speed 1 ms | 14.1 / 49.7 | 13.2 / 48.2 | 12.8 / 47.5 |
+| High, natural minor, speed 1 ms | 10.8 / 30.7 | 8.9 / 28.7 | – |
+
+(median / p90 cents). It wins back between a third and nearly all of what the
+latency cut cost.
+
+**CPU** (block 32, `--repeat 20`, % of one core / p99 µs per block):
+
+| Range | P-core, 1.0.1 → current | E-core, 1.0.1 → current |
+|---|---|---|
+| Low | 1.06 % → 2.02 % / 66 → 66 µs | 2.38 % → 4.35 % / 141 → 141 µs |
+| Normal | 0.45 % → 0.80 % / 25 → 25 µs | 1.16 % → 1.90 % / 59 → 59 µs |
+| High | 0.18 % → 0.34 % / 8 → 8 µs | 0.48 % → 1.14 % / 21 → 22 µs |
+
+Detection now runs twice as often; a block of 32 never holds more than one
+hop, so the per-block peak stays the same. The jump search adds a burst at
+each splice without a period: with detune +100 in Low, the slowest block went
+from 78 to 117 µs on a P-core and from 168 to 203 µs on an E-core (budget
+726 µs).

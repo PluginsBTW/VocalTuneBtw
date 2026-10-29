@@ -180,7 +180,7 @@ int main (int argc, char** argv)
     const int numChannels = static_cast<int> (input.channels.size());
     const size_t numBlocks = (input.frames() + static_cast<size_t> (blockSize) - 1) / static_cast<size_t> (blockSize);
     eval::Audio output;
-    int latency = 0;
+    int latency = 0, spread = 0;
     double bestTotal = 0.0, worstBlock = 0.0;
     std::vector<double> blockTimes (numBlocks), bestBlockTimes;
     for (int run = 0; run < repeats; ++run)
@@ -210,6 +210,7 @@ int main (int argc, char** argv)
             bestBlockTimes = blockTimes;
         }
         latency = engine.latencySamples();
+        spread = engine.latencySpreadSamples();
     }
     std::sort (bestBlockTimes.begin(), bestBlockTimes.end());
     const double p99Block = bestBlockTimes.empty() ? 0.0 : bestBlockTimes[(bestBlockTimes.size() - 1) * 99 / 100];
@@ -235,7 +236,11 @@ int main (int argc, char** argv)
     const auto limits = dsp::voiceRangeLimits (parameters.range);
     const auto before = eval::pitchError (dryMono, input.sampleRate, mask, limits.minHz, limits.maxHz, parameters.referenceHz);
     const auto after = eval::pitchError (wetMono, input.sampleRate, mask, limits.minHz, limits.maxHz, parameters.referenceHz);
-    const auto clicks = eval::clickScores (dryMono, wetMono, input.sampleRate, latency, threshold, static_cast<size_t> (maxClicks));
+    // The tap wanders around the latency, so look for the input's edges as
+    // far away as it can stray.
+    const double searchSeconds = std::max (0.01, spread / input.sampleRate);
+    const auto clicks = eval::clickScores (dryMono, wetMono, input.sampleRate, latency, threshold, static_cast<size_t> (maxClicks),
+                                           searchSeconds);
 
     std::printf ("file        %s\n", inputPath.c_str());
     std::printf ("format      %.0f Hz, %d ch, %.2f s, block %d\n", input.sampleRate, numChannels,
@@ -253,8 +258,8 @@ int main (int argc, char** argv)
                  before.medianAbsCents, before.p90AbsCents, after.medianAbsCents, after.p90AbsCents);
     std::printf ("voiced      %.1f %% in → %.1f %% out (of %d detector hops)\n", before.voicedFraction * 100.0,
                  after.voicedFraction * 100.0, after.hops);
-    std::printf ("click score max %.2f at %.4f s (threshold %.2f; ~1 = no worse than the input)\n",
-                 static_cast<double> (clicks.maxScore), clicks.maxSeconds, static_cast<double> (threshold));
+    std::printf ("click score max %.2f at %.4f s (threshold %.2f, input searched ±%.1f ms; ~1 = no worse than the input)\n",
+                 static_cast<double> (clicks.maxScore), clicks.maxSeconds, static_cast<double> (threshold), searchSeconds * 1000.0);
     if (! clicks.clicks.empty())
     {
         std::printf ("clicks      %zu listed, output time (input time = output − latency):\n", clicks.clicks.size());

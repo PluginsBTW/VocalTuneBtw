@@ -12,7 +12,7 @@ struct PitchEstimate
 };
 
 // Monophonic YIN pitch detector. The input is low-passed and decimated to
-// about 16 kHz, then analysed every ~5 ms over a window sized to the current
+// about 16 kHz, then analysed every ~2.5 ms over a window sized to the current
 // frequency range.
 class PitchDetector
 {

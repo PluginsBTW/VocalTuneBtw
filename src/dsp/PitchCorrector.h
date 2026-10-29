@@ -64,6 +64,8 @@ public:
     void process (float* const* channels, int numChannels, int numSamples) noexcept;
 
     int latencySamples() const noexcept { return shifter.latencySamples(); }
+    // How far the actual delay can stray from latencySamples() while shifting.
+    int latencySpreadSamples() const noexcept { return shifter.latencySpreadSamples(); }
     const EngineTelemetry& telemetry() const noexcept { return stats; }
 
 private:

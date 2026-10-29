@@ -10,7 +10,7 @@ using namespace pitchpilot;
 namespace
 {
 std::vector<float> render (std::vector<float> signal, double sampleRate, const dsp::EngineParameters& parameters,
-                           int blockSize, int* latency = nullptr)
+                           int blockSize, int* latency = nullptr, int* spread = nullptr)
 {
     dsp::PitchCorrector engine;
     engine.prepare (sampleRate, blockSize, 1);
@@ -22,6 +22,8 @@ std::vector<float> render (std::vector<float> signal, double sampleRate, const d
     }
     if (latency)
         *latency = engine.latencySamples();
+    if (spread)
+        *spread = engine.latencySpreadSamples();
     return signal;
 }
 } // namespace
@@ -64,9 +66,9 @@ TEST_CASE ("Vocal-like input is click-free through the whole engine")
         parameters.enabledNotes = 1 << 9;
 
     const auto input = test::vocalPhrase (sampleRate);
-    int latency = 0;
-    const auto output = render (input, sampleRate, parameters, blockSize, &latency);
-    const auto report = eval::clickScores (input, output, sampleRate, latency);
+    int latency = 0, spread = 0;
+    const auto output = render (input, sampleRate, parameters, blockSize, &latency, &spread);
+    const auto report = eval::clickScores (input, output, sampleRate, latency, 2.0f, 20, std::max (0.01, spread / sampleRate));
 
     INFO ("rate " << sampleRate << ", speed " << speedMs << " ms, scale " << dsp::scaleName (scale) << ", block "
                   << blockSize << ": worst click score " << report.maxScore << " at " << report.maxSeconds << " s");

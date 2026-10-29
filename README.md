@@ -85,14 +85,15 @@ audio itself.
 ## How it works
 
 1. **Detection.** The input is low-pass filtered, downsampled to about 16 kHz
-   and analysed every 5 ms with the YIN algorithm.
+   and analysed every 2.5 ms with the YIN algorithm.
 2. **Target.** The detected pitch is mapped to the nearest enabled note of the
    key and scale. Hysteresis prevents flicker between two notes.
 3. **Correction.** The pitch shift glides towards the target at the Retune
    Speed, scaled by Strength and offset by Detune.
 4. **Shifting.** A pitch-synchronous splice shifter reads the delayed signal
    at a different speed. It jumps back or forward by whole cycles of the
-   voice, with short crossfades, so the splices stay in phase.
+   voice, with short crossfades, so the splices stay in phase. Where no
+   pitch is detected, it jumps to where the waveform matches best.
 
 The DSP code in `src/dsp` is plain C++20 with no JUCE dependency and is
 tested on its own. The full design is in
