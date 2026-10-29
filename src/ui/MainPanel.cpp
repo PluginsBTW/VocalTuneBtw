@@ -126,6 +126,11 @@ void SettingsPanel::paint (juce::Graphics& g)
                       column.removeFromTop (48.0f).toNearestInt(), juce::Justification::topLeft, 3);
     g.setColour (colours::text);
     g.drawText (latencyText, column.removeFromTop (20.0f), juce::Justification::centredLeft);
+
+    g.setColour (colours::textDim);
+    g.setFont (font (type::caption));
+    g.drawText ("Version " JucePlugin_VersionString, bounds.reduced (16.0f, 10.0f).removeFromBottom (16.0f),
+                juce::Justification::centredRight);
 }
 
 void SettingsPanel::resized()
