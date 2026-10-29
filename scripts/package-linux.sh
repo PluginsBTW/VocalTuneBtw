@@ -30,6 +30,7 @@ licence modules/juce_core/zip/zlib/LICENSE zlib.txt
 licence modules/juce_graphics/image_formats/pnglib/LICENSE libpng.txt
 licence modules/juce_graphics/drawables/lunasvg/LICENSE lunasvg.txt
 licence modules/juce_graphics/unicode/sheenbidi/LICENSE SheenBidi.txt
+cp "$root/assets/fonts/UFL.txt" "$stage/third-party-licenses/Ubuntu-Font-Licence.txt"
 
 cat > "$stage/INSTALL.txt" <<EOF
 VocalTuneBtw $version for Linux (x86-64)

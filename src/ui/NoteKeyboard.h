@@ -7,9 +7,10 @@
 
 namespace pitchpilot::ui
 {
-// Two-octave piano showing the scale. Notes in the scale are lit and labelled.
-// Clicking one removes it from (or returns it to) the correction targets. The
-// key of the current target note is highlighted.
+// One octave as a row of twelve equal keys, white and black side by side, so
+// each pitch class appears exactly once. Notes in the scale are lit. Clicking
+// one removes it from (or returns it to) the correction targets. The key of
+// the current target note is highlighted.
 class NoteKeyboard final : public juce::Component
 {
 public:
@@ -20,19 +21,11 @@ public:
 
     void paint (juce::Graphics&) override;
     void mouseDown (const juce::MouseEvent&) override;
+    void mouseMove (const juce::MouseEvent&) override;
 
 private:
-    static constexpr int octaves = 2;
-
-    struct Key
-    {
-        int pitchClass;
-        int octave;
-        bool black;
-        juce::Rectangle<float> area;
-    };
-
-    std::vector<Key> keys() const;
+    juce::Rectangle<float> keyArea (int pitchClass) const;
+    int pitchClassAt (juce::Point<float> position) const;
     bool inScale (int pitchClass) const { return (scaleMask >> pitchClass) & 1u; }
     bool enabled (int pitchClass) const { return (enabledMask >> pitchClass) & 1u; }
 

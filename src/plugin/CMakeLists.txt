@@ -22,6 +22,7 @@ target_sources(VocalTuneBtw PRIVATE
     Parameters.cpp
     PluginProcessor.cpp
     PluginEditor.cpp
+    ../ui/Theme.cpp
     ../ui/LookAndFeel.cpp
     ../ui/Knob.cpp
     ../ui/TuningMeter.cpp
@@ -34,8 +35,15 @@ target_compile_definitions(VocalTuneBtw PUBLIC
     JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_DISPLAY_SPLASH_SCREEN=0)
 
+# Ubuntu Light, the PluginsBTW UI face (Ubuntu Font Licence, assets/fonts/UFL.txt).
+juce_add_binary_data(VocalTuneBtwFonts
+    HEADER_NAME VocalTuneBtwFonts.h
+    NAMESPACE VocalTuneBtwFonts
+    SOURCES ${PROJECT_SOURCE_DIR}/assets/fonts/Ubuntu-Light.ttf)
+
 target_link_libraries(VocalTuneBtw
     PRIVATE
+        VocalTuneBtwFonts
         pitchpilot_dsp
         juce::juce_audio_utils
         juce::juce_dsp

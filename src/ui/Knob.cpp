@@ -37,19 +37,17 @@ void Knob::updateValueText()
 void Knob::paint (juce::Graphics& g)
 {
     g.setColour (colours::textDim);
-    g.setFont (font (style.titleHeight * 0.62f, true).withExtraKerningFactor (0.08f));
+    g.setFont (font (type::caption));
     g.drawText (style.title.toUpperCase(), titleArea, juce::Justification::centred);
-
-    g.setFont (font (11.5f));
-    g.drawText (style.minCaption, captionArea, juce::Justification::centredLeft);
-    g.drawText (style.maxCaption, captionArea, juce::Justification::centredRight);
+    g.drawText (style.minCaption.toUpperCase(), captionArea, juce::Justification::centredLeft);
+    g.drawText (style.maxCaption.toUpperCase(), captionArea, juce::Justification::centredRight);
 }
 
 void Knob::paintOverChildren (juce::Graphics& g)
 {
     // The value sits on the knob body, which the dial draws.
     g.setColour (colours::text);
-    g.setFont (font (juce::jlimit (12.0f, 19.0f, valueArea.getHeight() * 0.42f), true));
+    g.setFont (font (type::valueLarge));
     g.drawFittedText (style.format ? style.format (dial.getValue()) : juce::String (dial.getValue()),
                       valueArea.toNearestInt(), juce::Justification::centred, 1, 0.8f);
 }

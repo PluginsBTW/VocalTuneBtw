@@ -16,6 +16,7 @@ licence was read from the fetched sources on 2026-10-28.
 | clap-juce-extensions | `7adee3a` (main, after 0.26.0) | MIT | CLAP wrapper (optional, `PITCHPILOT_BUILD_CLAP`) | CLAP build only |
 | CLAP, clap-helpers | submodules of the above | MIT | CLAP ABI | CLAP build only |
 | Catch2 | 3.7.1 | BSL-1.0 | unit tests | no |
+| Ubuntu Light font | as shipped in `epaint_default_fonts` 0.37.0 (`assets/fonts/`) | Ubuntu Font Licence 1.0 (`assets/fonts/UFL.txt`) | the PluginsBTW UI face, embedded in the editor | yes |
 
 All of these licences are compatible with distributing the combined work under
 AGPL-3.0-or-later.
@@ -24,8 +25,8 @@ AGPL-3.0-or-later.
 
 - Provide the complete corresponding source, including build scripts, under
   the AGPL. A link to the public repository at the same revision meets this.
-- Keep the MIT notices for the VST3 SDK and CLAP libraries in the release
-  archive.
+- Keep the MIT notices for the VST3 SDK and CLAP libraries, and the Ubuntu
+  Font Licence (`assets/fonts/UFL.txt`), in the release archive.
 - AGPL §13 (network interaction) doesn't apply in practice. VocalTuneBtw is a
   local plugin with no network features.
 

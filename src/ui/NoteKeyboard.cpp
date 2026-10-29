@@ -7,16 +7,17 @@ namespace pitchpilot::ui
 {
 namespace
 {
-    constexpr int whitePitchClasses[] = { 0, 2, 4, 5, 7, 9, 11 };
-    constexpr int blackPitchClasses[] = { 1, 3, 6, 8, 10 };
-    constexpr int blackAfterWhite[] = { 0, 1, 3, 4, 5 }; // white key index each black key sits after
-    constexpr const char* names[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+    constexpr bool black[] = { false, true, false, true, false, false, true, false, true, false, true, false };
+    constexpr const char* names[] = { "C", "C#\nDb", "D", "D#\nEb", "E", "F", "F#\nGb", "G", "G#\nAb", "A", "A#\nBb", "B" };
+    constexpr float gap = 4.0f;
+    constexpr float blackLift = 10.0f; // black keys start higher, like a piano's
+    constexpr float radius = 7.0f;     // radius-control
+    // A lit black key needs to stand clear of the dark keys outside the scale,
+    // so it is lighter than any raised fill: text-dim at 32% over the keyboard.
+    const juce::Colour blackKey = colours::display.interpolatedWith (colours::textDim, 0.32f);
 } // namespace
 
-NoteKeyboard::NoteKeyboard (juce::AudioProcessorValueTreeState& s) : state (s)
-{
-    setMouseCursor (juce::MouseCursor::PointingHandCursor);
-}
+NoteKeyboard::NoteKeyboard (juce::AudioProcessorValueTreeState& s) : state (s) {}
 
 void NoteKeyboard::refresh (int targetMidiNote)
 {
@@ -38,81 +39,84 @@ void NoteKeyboard::refresh (int targetMidiNote)
     }
 }
 
-std::vector<NoteKeyboard::Key> NoteKeyboard::keys() const
+juce::Rectangle<float> NoteKeyboard::keyArea (int pitchClass) const
 {
     const auto bounds = getLocalBounds().toFloat();
-    const float whiteWidth = bounds.getWidth() / (7.0f * octaves);
-    const float blackWidth = whiteWidth * 0.62f;
-    const float blackHeight = bounds.getHeight() * 0.6f;
+    const float width = (bounds.getWidth() - 11.0f * gap) / 12.0f;
+    const auto column = juce::Rectangle<float> (bounds.getX() + static_cast<float> (pitchClass) * (width + gap), bounds.getY(), width,
+                                                bounds.getHeight());
+    return black[pitchClass] ? column : column.withTrimmedTop (blackLift);
+}
 
-    std::vector<Key> result;
-    for (int octave = 0; octave < octaves; ++octave)
-        for (int i = 0; i < 7; ++i)
-            result.push_back ({ whitePitchClasses[i], octave, false,
-                                { bounds.getX() + (octave * 7 + i) * whiteWidth, bounds.getY(), whiteWidth, bounds.getHeight() } });
-    // Black keys last: they're drawn on top and hit-tested first.
-    for (int octave = 0; octave < octaves; ++octave)
-        for (int i = 0; i < 5; ++i)
-        {
-            const float x = bounds.getX() + (octave * 7 + blackAfterWhite[i] + 1) * whiteWidth - blackWidth * 0.5f;
-            result.push_back ({ blackPitchClasses[i], octave, true, { x, bounds.getY(), blackWidth, blackHeight } });
-        }
-    return result;
+int NoteKeyboard::pitchClassAt (juce::Point<float> position) const
+{
+    for (int pc = 0; pc < 12; ++pc)
+        if (keyArea (pc).expanded (gap * 0.5f, 0.0f).contains (position))
+            return pc;
+    return -1;
 }
 
 void NoteKeyboard::paint (juce::Graphics& g)
 {
-    // The target lands on one of the two drawn octaves.
     const int activePitchClass = activeNote >= 0 ? activeNote % 12 : -1;
-    const int activeOctave = activeNote >= 0 ? (activeNote / 12) % octaves : -1;
 
-    for (const auto& key : keys())
+    for (int pc = 0; pc < 12; ++pc)
     {
-        const bool lit = inScale (key.pitchClass) && enabled (key.pitchClass);
-        const bool active = key.pitchClass == activePitchClass && key.octave == activeOctave;
+        const auto area = keyArea (pc);
+        const bool scale = inScale (pc), lit = scale && enabled (pc), active = pc == activePitchClass;
 
-        auto fill = key.black ? (lit ? colours::keyBlack : colours::keyBlackOff) : (lit ? colours::keyWhite : colours::keyWhiteOff);
+        // Lit: a filled key. Removed from the scale or outside it: the same dark
+        // key with a hairline. Removed keys keep a readable label, as they can be
+        // clicked back on.
+        const auto keyColour = black[pc] ? blackKey : colours::text;
+        juce::Colour label;
         if (active)
-            fill = colours::keyActive;
-
-        const auto area = key.black ? key.area : key.area.reduced (1.0f, 0.0f);
-        g.setColour (fill);
-        g.fillRoundedRectangle (area, 3.0f);
-        if (key.black)
         {
-            g.setColour (juce::Colours::black.withAlpha (0.5f));
-            g.drawRoundedRectangle (area, 3.0f, 1.0f);
+            g.setColour (colours::accentHaloStrong);
+            g.fillRoundedRectangle (area.expanded (3.0f), radius + 3.0f);
+            g.setColour (colours::accent);
+            g.fillRoundedRectangle (area, radius);
+            label = colours::background;
+        }
+        else if (lit)
+        {
+            g.setColour (keyColour);
+            g.fillRoundedRectangle (area, radius);
+            label = black[pc] ? colours::text : colours::background;
+        }
+        else
+        {
+            g.setColour (colours::display);
+            g.fillRoundedRectangle (area, radius);
+            g.setColour (colours::edge);
+            g.drawRoundedRectangle (area.reduced (0.5f), radius, 1.0f);
+            label = scale ? colours::textDim : colours::textDim.withMultipliedAlpha (0.35f);
         }
 
-        if (! inScale (key.pitchClass))
-            continue;
-
-        // Label in-scale notes; removed notes get a dimmed label.
-        const auto label = area.withTrimmedTop (area.getHeight() - 24.0f).reduced (3.0f, 4.0f);
-        auto textColour = key.black || active ? colours::text : colours::background;
-        if (! enabled (key.pitchClass))
-            textColour = textColour.withAlpha (0.35f);
-        g.setColour (textColour);
-        g.setFont (font (12.0f, true));
-        g.drawText (names[key.pitchClass], label, juce::Justification::centred);
+        g.setColour (label);
+        g.setFont (font (type::controlLabel));
+        const float labelHeight = black[pc] ? 36.0f : 22.0f;
+        g.drawFittedText (names[pc], area.withTrimmedTop (area.getHeight() - labelHeight - 8.0f).withTrimmedBottom (8.0f).toNearestInt(),
+                          juce::Justification::centred, 2);
     }
+}
+
+void NoteKeyboard::mouseMove (const juce::MouseEvent& event)
+{
+    const int pc = pitchClassAt (event.position);
+    setMouseCursor (pc >= 0 && inScale (pc) ? juce::MouseCursor::PointingHandCursor : juce::MouseCursor::NormalCursor);
 }
 
 void NoteKeyboard::mouseDown (const juce::MouseEvent& event)
 {
-    const auto allKeys = keys();
-    for (auto it = allKeys.rbegin(); it != allKeys.rend(); ++it)
-    {
-        if (! it->area.contains (event.position))
-            continue;
-        if (inScale (it->pitchClass))
-            if (auto* parameter = state.getParameter (ParamID::note (it->pitchClass)))
-            {
-                parameter->beginChangeGesture();
-                parameter->setValueNotifyingHost (enabled (it->pitchClass) ? 0.0f : 1.0f);
-                parameter->endChangeGesture();
-            }
+    const int pc = pitchClassAt (event.position);
+    if (pc < 0 || ! inScale (pc))
         return;
+    if (auto* parameter = state.getParameter (ParamID::note (pc)))
+    {
+        parameter->beginChangeGesture();
+        parameter->setValueNotifyingHost (enabled (pc) ? 0.0f : 1.0f);
+        parameter->endChangeGesture();
     }
 }
 } // namespace pitchpilot::ui

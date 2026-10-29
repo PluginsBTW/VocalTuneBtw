@@ -4,6 +4,7 @@
 #include "plugin/PluginProcessor.h"
 
 #include <cmath>
+#include <utility>
 
 namespace pitchpilot::ui
 {
@@ -39,9 +40,10 @@ void IconButton::paintButton (juce::Graphics& g, bool highlighted, bool)
 
     // Power is lit while processing (bypass off). The gear is lit while open.
     const bool lit = icon == Icon::power ? ! getToggleState() : getToggleState();
-    auto colour = lit ? colours::accent : colours::textDim;
-    if (highlighted)
-        colour = colour.brighter (0.3f);
+    // Power on is live (glow); an open settings page is a selection (accent).
+    auto colour = lit ? (icon == Icon::power ? colours::glow : colours::accent) : colours::textDim;
+    if (highlighted && ! lit)
+        colour = colours::text;
     g.setColour (colour);
     const juce::PathStrokeType stroke (2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded);
 
@@ -100,27 +102,26 @@ void SettingsPanel::refresh()
 void SettingsPanel::paint (juce::Graphics& g)
 {
     const auto bounds = getLocalBounds().toFloat().reduced (0.5f);
-    g.setColour (colours::panel);
+    g.setColour (colours::surface);
     g.fillRoundedRectangle (bounds, 10.0f);
     g.setColour (colours::edge);
     g.drawRoundedRectangle (bounds, 10.0f, 1.0f);
 
     const auto box = range.getBounds().toFloat();
-    g.setColour (colours::background);
+    g.setColour (colours::raised);
     g.fillRoundedRectangle (box, 5.0f);
     g.setColour (colours::edge);
     g.drawRoundedRectangle (box, 5.0f, 1.0f);
 
     auto column = juce::Rectangle<float> (box.getX(), box.getY() - 26.0f, bounds.getRight() - box.getX() - 16.0f, 200.0f);
-    g.setColour (colours::text);
-    g.setFont (font (14.4f, true));
-    g.drawText ("Voice Range", column.removeFromTop (18.0f), juce::Justification::centredLeft);
-    column.removeFromTop (48.0f);
-    g.setFont (font (12.5f));
     g.setColour (colours::textDim);
+    g.setFont (font (type::caption));
+    g.drawText ("VOICE RANGE", column.removeFromTop (18.0f), juce::Justification::centredLeft);
+    column.removeFromTop (48.0f);
+    g.setFont (font (type::value));
     g.drawFittedText ("Low reaches 50 Hz, Normal 80 Hz, High 150 Hz.\nA higher range lowers latency.",
                       column.removeFromTop (48.0f).toNearestInt(), juce::Justification::topLeft, 3);
-    g.setColour (colours::accent);
+    g.setColour (colours::text);
     g.drawText (latencyText, column.removeFromTop (20.0f), juce::Justification::centredLeft);
 }
 
@@ -220,9 +221,9 @@ void MainPanel::refresh()
 void MainPanel::paint (juce::Graphics& g)
 {
     const auto bounds = getLocalBounds().toFloat();
-    g.fillAll (colours::frame);
+    g.fillAll (colours::background);
     const auto card = bounds.reduced (4.0f);
-    g.setColour (colours::background);
+    g.setColour (colours::surface);
     g.fillRoundedRectangle (card, 10.0f);
     g.setColour (colours::edge);
     g.drawRoundedRectangle (card, 10.0f, 1.0f);
@@ -238,34 +239,38 @@ void MainPanel::paint (juce::Graphics& g)
     logo.lineTo (lx + 14.0f, ly - 1.0f);
     g.strokePath (logo, juce::PathStrokeType (2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
-    const auto logoFont = font (24.0f);
+    // Wordmark: Vocal (text) Tune (accent) Btw (text-dim), one word.
+    const auto logoFont = font (type::wordmark);
     g.setFont (logoFont);
-    g.setColour (colours::text);
-    g.drawText ("Vocal", juce::Rectangle<float> (56.0f, 0.0f, 80.0f, 54.0f), juce::Justification::centredLeft);
-    g.setColour (colours::accent);
-    g.drawText ("TuneBtw", juce::Rectangle<float> (56.0f + juce::GlyphArrangement::getStringWidth (logoFont, "Vocal"), 0.0f, 120.0f, 54.0f),
-                juce::Justification::centredLeft);
+    float x = 56.0f;
+    const std::pair<const char*, juce::Colour> parts[] = { { "Vocal", colours::text }, { "Tune", colours::accent }, { "Btw", colours::textDim } };
+    for (const auto& [part, colour] : parts)
+    {
+        g.setColour (colour);
+        g.drawText (part, juce::Rectangle<float> (x, 0.0f, 80.0f, 54.0f), juce::Justification::centredLeft);
+        x += juce::GlyphArrangement::getStringWidth (logoFont, part);
+    }
 
     // Key / Scale pill.
-    g.setColour (colours::panel);
-    g.fillRoundedRectangle (keyScalePill, 6.0f);
+    g.setColour (colours::raised);
+    g.fillRoundedRectangle (keyScalePill, 7.0f);
     g.setColour (colours::edge);
-    g.drawRoundedRectangle (keyScalePill, 6.0f, 1.0f);
-    g.setColour (colours::text);
-    g.setFont (font (15.0f));
-    g.drawText ("Key", keyScalePill.withWidth (44.0f).translated (10.0f, 0.0f), juce::Justification::centredLeft);
-    g.drawText ("Scale", juce::Rectangle<float> (static_cast<float> (scaleBox.getX()) - 48.0f, keyScalePill.getY(), 46.0f, keyScalePill.getHeight()),
+    g.drawRoundedRectangle (keyScalePill, 7.0f, 1.0f);
+    g.setColour (colours::textDim);
+    g.setFont (font (type::caption));
+    g.drawText ("KEY", keyScalePill.withWidth (44.0f).translated (10.0f, 0.0f), juce::Justification::centredLeft);
+    g.drawText ("SCALE", juce::Rectangle<float> (static_cast<float> (scaleBox.getX()) - 48.0f, keyScalePill.getY(), 46.0f, keyScalePill.getHeight()),
                 juce::Justification::centredLeft);
 
     // Hint above the keyboard.
     g.setColour (colours::textDim);
-    g.setFont (font (13.0f));
+    g.setFont (font (type::caption));
     g.drawText ("Click a lit key to remove that note from the scale", juce::Rectangle<float> (0.0f, 340.0f, bounds.getWidth(), 18.0f),
                 juce::Justification::centred);
 
     // Keyboard frame.
     const auto frame = keyboard.getBounds().toFloat().expanded (6.0f);
-    g.setColour (colours::meterFace);
+    g.setColour (colours::display);
     g.fillRoundedRectangle (frame, 8.0f);
     g.setColour (colours::edge);
     g.drawRoundedRectangle (frame, 8.0f, 1.0f);
@@ -276,8 +281,9 @@ void MainPanel::resized()
     settingsButton.setBounds (designWidth - 82, 12, 28, 28);
     powerButton.setBounds (designWidth - 44, 12, 28, 28);
 
-    naturalButton.setBounds (28, 70, 96, 30);
-    hardButton.setBounds (132, 70, 96, 30);
+    // Buttons leave 3px around their face for the selected halo.
+    naturalButton.setBounds (25, 67, 102, 36);
+    hardButton.setBounds (129, 67, 102, 36);
 
     keyScalePill = { 412.0f, 70.0f, 320.0f, 30.0f };
     keyBox.setBounds (452, 70, 104, 30);

@@ -33,7 +33,7 @@ void TuningMeter::paint (juce::Graphics& g)
     const bool active = note >= 0;
 
     // Scale labels around the dial.
-    g.setFont (font (12.0f));
+    g.setFont (font (type::caption));
     g.setColour (colours::textDim);
     for (int cents = -100; cents <= 100; cents += 25)
     {
@@ -42,11 +42,9 @@ void TuningMeter::paint (juce::Graphics& g)
         g.drawText (text, juce::Rectangle<float> (34.0f, 14.0f).withCentre (p), juce::Justification::centred);
     }
 
-    // Face.
+    // Face: the display surface, flat.
     const auto face = juce::Rectangle<float> (outer * 2.0f, outer * 2.0f).withCentre (centre);
-    g.setColour (juce::Colours::black.withAlpha (0.45f));
-    g.fillEllipse (face.translated (0.0f, 5.0f).expanded (3.0f));
-    g.setColour (colours::meterFace);
+    g.setColour (colours::display);
     g.fillEllipse (face);
     g.setColour (colours::edge);
     g.drawEllipse (face, 1.5f);
@@ -62,9 +60,9 @@ void TuningMeter::paint (juce::Graphics& g)
 
         auto colour = colours::edge;
         if (step == 0)
-            colour = active ? colours::text : colours::edge.brighter (0.3f);
+            colour = active ? colours::text : colours::raisedHover;
         else if (lit)
-            colour = colours::accent;
+            colour = colours::glow; // live reading
 
         g.setColour (colour);
         g.drawLine (juce::Line<float> (centre.getPointOnCircumference (inner, angle),
@@ -75,8 +73,7 @@ void TuningMeter::paint (juce::Graphics& g)
     // Inner disc.
     const float discRadius = outer * 0.64f;
     const auto disc = juce::Rectangle<float> (discRadius * 2.0f, discRadius * 2.0f).withCentre (centre);
-    g.setGradientFill (juce::ColourGradient (colours::knobTop, centre.x, disc.getY(), colours::knobBottom, centre.x,
-                                             disc.getBottom(), false));
+    g.setColour (colours::raised);
     g.fillEllipse (disc);
     g.setColour (colours::edge);
     g.drawEllipse (disc, 1.0f);
@@ -106,7 +103,7 @@ void TuningMeter::paint (juce::Graphics& g)
     }
 
     g.setColour (colours::textDim);
-    g.setFont (font (13.0f));
+    g.setFont (font (type::value));
     const auto detail = juce::String (note / 12 - 1) + "  " + (deviation >= 0.0f ? "+" : "") + juce::String (juce::roundToInt (deviation)) + " ct";
     g.drawText ("octave " + detail, disc.withTrimmedTop (discRadius * 1.3f).withTrimmedBottom (discRadius * 0.25f), juce::Justification::centred);
 }
