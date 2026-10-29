@@ -35,7 +35,7 @@ jobs:
           CC: gcc-12
           CXX: g++-12
         run: |
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPITCHPILOT_BUILD_CLAP=OFF
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
           cmake --build build --parallel
 
       - name: Test
