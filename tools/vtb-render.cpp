@@ -4,7 +4,7 @@
 //   vtb-render input.wav [-o output.wav] [--root A] [--scale "natural minor"]
 //              [--speed 25] [--strength 100] [--detune 0] [--tolerance 0]
 //              [--reference 440] [--range normal] [--block 512]
-//              [--threshold 2] [--clicks 20]
+//              [--threshold 2] [--clicks 20] [--repeat 1]
 
 #include "AudioMetrics.h"
 #include "Wav.h"
@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -36,7 +37,8 @@ namespace
                   "  --range NAME       low, normal, high (default normal)\n"
                   "  --block N          host block size (default 512)\n"
                   "  --threshold X      click score above which a click is listed (default 2)\n"
-                  "  --clicks N         list at most N clicks (default 20)\n");
+                  "  --clicks N         list at most N clicks (default 20)\n"
+                  "  --repeat N         render N times for timing; the fastest run is reported (default 1)\n");
     std::exit (2);
 }
 
@@ -112,6 +114,7 @@ int main (int argc, char** argv)
     int blockSize = 512;
     float threshold = 2.0f;
     int maxClicks = 20;
+    int repeats = 1;
 
     for (int i = 1; i < argc; ++i)
     {
@@ -147,6 +150,8 @@ int main (int argc, char** argv)
             threshold = parseNumber (value());
         else if (arg == "--clicks")
             maxClicks = std::max (0, static_cast<int> (parseNumber (value())));
+        else if (arg == "--repeat")
+            repeats = std::max (1, static_cast<int> (parseNumber (value())));
         else if (! arg.empty() && arg[0] == '-')
             usage (("unknown option " + arg).c_str());
         else if (inputPath.empty())
@@ -168,20 +173,48 @@ int main (int argc, char** argv)
         return 1;
     }
 
-    auto output = input;
-    const int numChannels = static_cast<int> (output.channels.size());
-    dsp::PitchCorrector engine;
-    engine.prepare (input.sampleRate, blockSize, numChannels);
-    engine.setParameters (parameters);
-    std::vector<float*> pointers (output.channels.size());
-    for (size_t offset = 0; offset < output.frames(); offset += static_cast<size_t> (blockSize))
+    // Each run starts from a freshly prepared engine. Only engine.process is
+    // timed, per block; the fastest run gives the totals, the slowest block
+    // over all runs gives the worst case.
+    using Clock = std::chrono::steady_clock;
+    const int numChannels = static_cast<int> (input.channels.size());
+    const size_t numBlocks = (input.frames() + static_cast<size_t> (blockSize) - 1) / static_cast<size_t> (blockSize);
+    eval::Audio output;
+    int latency = 0;
+    double bestTotal = 0.0, worstBlock = 0.0;
+    std::vector<double> blockTimes (numBlocks), bestBlockTimes;
+    for (int run = 0; run < repeats; ++run)
     {
-        const auto count = std::min (static_cast<size_t> (blockSize), output.frames() - offset);
-        for (size_t ch = 0; ch < pointers.size(); ++ch)
-            pointers[ch] = output.channels[ch].data() + offset;
-        engine.process (pointers.data(), numChannels, static_cast<int> (count));
+        output = input;
+        dsp::PitchCorrector engine;
+        engine.prepare (input.sampleRate, blockSize, numChannels);
+        engine.setParameters (parameters);
+        std::vector<float*> pointers (output.channels.size());
+        double total = 0.0;
+        for (size_t block = 0; block < numBlocks; ++block)
+        {
+            const auto offset = block * static_cast<size_t> (blockSize);
+            const auto count = std::min (static_cast<size_t> (blockSize), output.frames() - offset);
+            for (size_t ch = 0; ch < pointers.size(); ++ch)
+                pointers[ch] = output.channels[ch].data() + offset;
+            const auto start = Clock::now();
+            engine.process (pointers.data(), numChannels, static_cast<int> (count));
+            const double seconds = std::chrono::duration<double> (Clock::now() - start).count();
+            blockTimes[block] = seconds;
+            total += seconds;
+            worstBlock = std::max (worstBlock, seconds);
+        }
+        if (run == 0 || total < bestTotal)
+        {
+            bestTotal = total;
+            bestBlockTimes = blockTimes;
+        }
+        latency = engine.latencySamples();
     }
-    const int latency = engine.latencySamples();
+    std::sort (bestBlockTimes.begin(), bestBlockTimes.end());
+    const double p99Block = bestBlockTimes.empty() ? 0.0 : bestBlockTimes[(bestBlockTimes.size() - 1) * 99 / 100];
+    const double audioSeconds = static_cast<double> (input.frames()) / input.sampleRate;
+    const double budget = blockSize / input.sampleRate;
 
     if (! outputPath.empty())
     {
@@ -213,6 +246,9 @@ int main (int argc, char** argv)
                  static_cast<double> (parameters.toleranceCents), static_cast<double> (parameters.referenceHz),
                  parameters.range == dsp::VoiceRange::Low ? "low" : parameters.range == dsp::VoiceRange::High ? "high" : "normal");
     std::printf ("latency     %d samples (%.2f ms)\n", latency, latency * 1000.0 / input.sampleRate);
+    std::printf ("cpu         %.3f %% of real time (fastest of %d runs), %.2f µs per block mean, p99 %.2f µs, max %.2f µs; budget %.0f µs\n",
+                 bestTotal / audioSeconds * 100.0, repeats, bestTotal / static_cast<double> (numBlocks) * 1e6, p99Block * 1e6,
+                 worstBlock * 1e6, budget * 1e6);
     std::printf ("pitch error median %.1f c, p90 %.1f c in → median %.1f c, p90 %.1f c out (to the nearest allowed note)\n",
                  before.medianAbsCents, before.p90AbsCents, after.medianAbsCents, after.p90AbsCents);
     std::printf ("voiced      %.1f %% in → %.1f %% out (of %d detector hops)\n", before.voicedFraction * 100.0,

@@ -45,7 +45,7 @@ native CLAP one) without changes.
 5. `PitchShifter` reads one tap from a delay line, moving at `(1 − ratio)`
    samples per sample. When the tap leaves its delay range (one period of the
    range's lowest note, plus a margin), a second tap starts a whole number of
-   detected periods away, and a 2 ms raised-cosine crossfade hands over to it. Period-aligned splices stay in phase, which avoids
+   detected periods away, and a 1 ms raised-cosine crossfade hands over to it. Period-aligned splices stay in phase, which avoids
    the cancellation and pitch error of a fixed two-tap design.
 6. The output crossfades between the shifted signal and a dry signal delayed by
    the shifter latency, over a 10 ms ramp, for click-free bypass.
@@ -67,12 +67,11 @@ native CLAP one) without changes.
 
 | Stage | Latency | Reported to host |
 |---|---|---|
-| Pitch shifter | rest delay = 2 ms crossfade headroom + half of 1.05 × the longest period in the voice range: Low 12.5 ms, Normal 8.6 ms, High 5.5 ms (602 / 413 / 266 samples at 48 kHz). The tap wanders within that range while shifting. | yes (rest delay; updated from the message thread when the range changes) |
+| Pitch shifter | rest delay = crossfade headroom for shifts up to 3 semitones (12 samples, 0.25 ms at 48 kHz) + half of 1.05 × the longest period in the voice range: Low 10.8 ms, Normal 6.8 ms, High 3.8 ms (516 / 327 / 180 samples at 48 kHz). Bigger upward shifts start their splice earlier instead of raising the latency. The tap wanders within that range while shifting. | yes (rest delay; updated from the message thread when the range changes) |
 | Pitch detection | about 2 periods of the lowest range note + one hop (Normal range: about 30 ms) | no: the correction arrives late, the audio is not delayed |
 
 Detection lag means that note onsets reach their target about one detection
-window late. Fixing this would need look-ahead, which is a later trade-off
-(milestone M4).
+window late. Fixing this would need look-ahead, which would add latency.
 
 ## Parameters
 
