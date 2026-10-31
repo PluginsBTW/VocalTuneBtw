@@ -50,7 +50,7 @@ slides intact. It runs as a VST3 or CLAP plugin and as a Standalone app.
 | Retune Speed | 1–200 ms | How fast the voice moves to the target. Low values give the hard, stepped effect. |
 | Humanize | Off–100 % | Deviations smaller than this are left uncorrected (0–50 cents). |
 | Natural / Hard | presets | Set Retune Speed and Humanize in one click. The active preset lights up. |
-| Power | on / off | Bypass with a 10 ms crossfade. |
+| Power | on / off | Bypass with a 10 ms crossfade. The switch is blue while the effect runs; while bypassed it turns grey and the tuning meter dims. |
 
 ### Settings
 
