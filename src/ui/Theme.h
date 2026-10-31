@@ -27,6 +27,9 @@ namespace colours
     inline const juce::Colour scrim { 0xe60a0e15 };        // background at 90%
 } // namespace colours
 
+// opacity-off: the display's contents while the effect is switched off.
+inline constexpr float opacityOff = 0.35f;
+
 // The five PluginsBTW type sizes, in pixels (point height). Don't add others.
 namespace type
 {
@@ -47,5 +50,5 @@ inline juce::Font font (float size)
 
 // Design size of the editor. The editor scales this to its actual size.
 inline constexpr int designWidth = 760;
-inline constexpr int designHeight = 480;
+inline constexpr int designHeight = 504;
 } // namespace pitchpilot::ui

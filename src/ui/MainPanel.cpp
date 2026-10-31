@@ -35,29 +35,40 @@ IconButton::IconButton (const juce::String& name, Icon i) : Button (name), icon 
 
 void IconButton::paintButton (juce::Graphics& g, bool highlighted, bool)
 {
+    if (icon == Icon::power)
+    {
+        // The compact PowerSwitch: on while processing (bypass off).
+        const auto centre = getLocalBounds().toFloat().getCentre();
+        const bool on = ! getToggleState();
+        constexpr float radius = 13.0f; // power-radius-compact
+        g.setColour (on ? colours::accentHalo : colours::raised);
+        g.fillEllipse (juce::Rectangle<float> (2.0f * radius, 2.0f * radius).withCentre (centre));
+        g.setColour (on ? colours::accent : colours::edge);
+        g.drawEllipse (juce::Rectangle<float> (2.0f * radius - 1.0f, 2.0f * radius - 1.0f).withCentre (centre), 1.0f);
+
+        // An arc of radius 6 open at the top, and a bar from 8px to 2px above the centre.
+        constexpr float gap = 0.7f;
+        juce::Path symbol;
+        symbol.addCentredArc (centre.x, centre.y, 6.0f, 6.0f, 0.0f, gap, juce::MathConstants<float>::twoPi - gap, true);
+        symbol.startNewSubPath (centre.x, centre.y - 8.0f);
+        symbol.lineTo (centre.x, centre.y - 2.0f);
+        g.setColour (on ? colours::glow : highlighted ? colours::text : colours::textDim);
+        g.strokePath (symbol, juce::PathStrokeType (2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::butt));
+        return;
+    }
+
     const auto bounds = getLocalBounds().toFloat().reduced (4.0f);
     const auto centre = bounds.getCentre();
     const float r = juce::jmin (bounds.getWidth(), bounds.getHeight()) * 0.5f;
 
-    // Power is lit while processing (bypass off). The gear is lit while open.
-    const bool lit = icon == Icon::power ? ! getToggleState() : getToggleState();
-    // Power on is live (glow); an open settings page is a selection (accent).
-    auto colour = lit ? (icon == Icon::power ? colours::glow : colours::accent) : colours::textDim;
+    // The gear is lit (accent, a selection) while the settings page is open.
+    const bool lit = getToggleState();
+    auto colour = lit ? colours::accent : colours::textDim;
     if (highlighted && ! lit)
         colour = colours::text;
     g.setColour (colour);
-    const juce::PathStrokeType stroke (2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded);
 
     juce::Path path;
-    if (icon == Icon::power)
-    {
-        path.addCentredArc (centre.x, centre.y, r * 0.8f, r * 0.8f, 0.0f, juce::degreesToRadians (35.0f),
-                            juce::degreesToRadians (325.0f), true);
-        path.startNewSubPath (centre.x, centre.y - r);
-        path.lineTo (centre.x, centre.y - r * 0.15f);
-        g.strokePath (path, stroke);
-        return;
-    }
 
     constexpr int teeth = 8;
     for (int i = 0; i < teeth; ++i)
@@ -126,11 +137,6 @@ void SettingsPanel::paint (juce::Graphics& g)
                       column.removeFromTop (48.0f).toNearestInt(), juce::Justification::topLeft, 3);
     g.setColour (colours::text);
     g.drawText (latencyText, column.removeFromTop (20.0f), juce::Justification::centredLeft);
-
-    g.setColour (colours::textDim);
-    g.setFont (font (type::caption));
-    g.drawText ("Version " JucePlugin_VersionString, bounds.reduced (16.0f, 10.0f).removeFromBottom (16.0f),
-                juce::Justification::centredRight);
 }
 
 void SettingsPanel::resized()
@@ -223,6 +229,8 @@ void MainPanel::refresh()
     displayedCents = note >= 0 ? displayedCents + (cents - displayedCents) * 0.35f : 0.0f;
 
     meter.setReading (note, displayedCents);
+    // The tuning meter is the display: it dims while the power switch is off.
+    meter.setAlpha (powerButton.getToggleState() ? opacityOff : 1.0f);
     keyboard.refresh (note);
     settings.refresh();
 
@@ -288,6 +296,13 @@ void MainPanel::paint (juce::Graphics& g)
     g.fillRoundedRectangle (frame, 8.0f);
     g.setColour (colours::edge);
     g.drawRoundedRectangle (frame, 8.0f, 1.0f);
+
+    // Version, bottom right below the keyboard.
+    g.setColour (colours::textDim);
+    g.setFont (font (type::caption));
+    g.drawText ("Version " JucePlugin_VersionString,
+                juce::Rectangle<float> (frame.getX(), frame.getBottom() + 4.0f, frame.getWidth(), 16.0f),
+                juce::Justification::centredRight);
 }
 
 void MainPanel::resized()
