@@ -297,11 +297,12 @@ void MainPanel::paint (juce::Graphics& g)
     g.setColour (colours::edge);
     g.drawRoundedRectangle (frame, 8.0f, 1.0f);
 
-    // Version, bottom right below the keyboard.
+    // Version, bottom right below the keyboard: a lowercase v and no label,
+    // right-aligned 4px inside the content edge.
     g.setColour (colours::textDim);
     g.setFont (font (type::caption));
-    g.drawText ("Version " JucePlugin_VersionString,
-                juce::Rectangle<float> (frame.getX(), frame.getBottom() + 4.0f, frame.getWidth(), 16.0f),
+    g.drawText ("v" JucePlugin_VersionString,
+                juce::Rectangle<float> (frame.getX(), frame.getBottom() + 4.0f, frame.getWidth() - 4.0f, 16.0f),
                 juce::Justification::centredRight);
 }
 
